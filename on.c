@@ -13,31 +13,37 @@ Object* create_con() {
     return o;
 }
 
-void print_pair(Object* o) {
-    printf("\"%s\": ", o->key);
-    switch (o->value.type) {
+void print_key(char key[100]) { printf("\"%s\": ", key); }
+
+void print_value(Value v) {
+    switch (v.type) {
         case INT:
-            printf("%d", o->value._int);
+            printf("%d", v._int);
             break;
         case DOUBLE:
-            printf("%f", o->value._double);
+            printf("%f", v._double);
             break;
         case STRING:
-            printf("\"%s\"", o->value.string);
+            printf("\"%s\"", v._string);
             break;
-        case ARRAY:
-            break;
+        // case ARRAY:
+        //     break;
         case OBJECT:
-            _print_con(o->value._obj);
+            _print_con(v._obj);
             break;
     }
+}
+
+void print_pair(KeyValue* pair) {
+    print_key(pair->key);
+    print_value(pair->value);
 }
 
 void _print_con(Object* o) {
     Object* t = o;
     printf("{");
-    while (t->next) {
-        print_pair(t);
+    while (t->next != NULL) {
+        print_pair(&t->pair);
         t = t->next;
         if (t->next) printf(", ");
     }
@@ -52,8 +58,8 @@ void print_con(Object* o) {
 uint add_value(Object* o, char key[100], enum V_type type, void* data) {
     Object* t = o;
 
-    while (t->next) {
-        if (strcmp(t->key, key) == 0) {
+    while (t->next != NULL) {
+        if (strcmp(t->pair.key, key) == 0) {
             printf("Cannot add key \"%s\", already present\n", key);
             return 1;
         }
@@ -61,30 +67,50 @@ uint add_value(Object* o, char key[100], enum V_type type, void* data) {
     }
 
     t->next = create_con();
-
-    strcpy(t->key, key);
-    t->value.type = type;
+    strcpy(t->pair.key, key);
+    t->pair.value.type = type;
     switch (type) {
         case INT:
-            t->value._int = *(int*)data;
+            t->pair.value._int = *(int*)data;
             break;
         case DOUBLE:
-            t->value._double = *(double*)data;
+            t->pair.value._double = *(double*)data;
             break;
         case STRING:
-            strcpy(t->value.string, (char*)data);
+            strcpy(t->pair.value._string, (char*)data);
             break;
         case ARRAY:
             break;
         case OBJECT:
-            t->value._obj = (Object*)data;
+            t->pair.value._obj = (Object*)data;
             break;
-
         default:
             break;
     }
-
     return 0;
+}
+
+Object* get(Object* o, char key[100]) {
+    Object *t, *n;
+    t = o;
+    n = create_con();
+    n->next = create_con();
+
+    while (t->next != NULL) {
+        if (strcmp(t->pair.key, key) == 0) {
+            n->pair = t->pair;
+            return n;
+        }
+        t = t->next;
+    }
+
+    return NULL;
+}
+
+Value get_value(Object* o, char key[100]) {
+    Object* t;
+    t = get(o, key);
+    return t->pair.value;
 }
 
 int main() {
@@ -93,16 +119,21 @@ int main() {
 
     int x = 42;
     add_value(o, "a", INT, &x);
-    char str[] = "test";
-    add_value(o, "b", STRING, &str);
-    print_con(o);
 
     int y = 100;
     o1 = create_con();
     add_value(o1, "d", INT, &y);
 
-    add_value(o, "c", OBJECT, o1);
+    add_value(o, "b", OBJECT, o1);
+
+    char str[] = "test";
+    add_value(o, "c", STRING, &str);
     print_con(o);
+
+    // Object* o2;
+    Value v;
+    v = get_value(o, "b");
+    print_value(v);
 
     return 0;
 }

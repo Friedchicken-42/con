@@ -4,6 +4,7 @@
 typedef unsigned int uint;
 
 typedef struct Value Value;
+typedef struct KeyValue KeyValue;
 typedef struct Object Object;
 
 enum V_type {
@@ -18,16 +19,19 @@ struct Value {
     union {
         int _int;
         double _double;
-        char string[100];
-        Value *array[32];
+        char _string[100];
         Object *_obj;
     };
     enum V_type type;
 };
 
-struct Object {
+struct KeyValue {
     char key[100];
     Value value;
+};
+
+struct Object {
+    KeyValue pair;
     Object *next;
 };
 
