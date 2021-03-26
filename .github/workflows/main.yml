@@ -1,0 +1,22 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+    
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: gcc
+        run: |
+          sudo apt update
+          sudo apt install build-essential
+          gcc *.c
+          
