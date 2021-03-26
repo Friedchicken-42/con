@@ -14,9 +14,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: gcc
+      - name: setup
         run: |
           sudo apt update
           sudo apt install build-essential
-          gcc *.c
+      - name: gcc
+        run: gcc -Wall -Werror *.c
           
