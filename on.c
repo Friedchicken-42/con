@@ -4,69 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-void _print_con(Object* o);
-void print_array(Object* o);
-
 Object* create_con() {
     Object* o;
     o = malloc(sizeof(Object));
     o->next = NULL;
     return o;
-}
-
-void print_key(char key[100]) { printf("\"%s\": ", key); }
-
-void print_value(Value v) {
-    switch (v.type) {
-        case INT:
-            printf("%d", v._int);
-            break;
-        case DOUBLE:
-            printf("%f", v._double);
-            break;
-        case STRING:
-            printf("\"%s\"", v._string);
-            break;
-        case ARRAY:
-            print_array(v._obj);
-            break;
-        case OBJECT:
-            _print_con(v._obj);
-            break;
-    }
-}
-
-void print_array(Object* o) {
-    Object* t = o;
-
-    printf("[");
-    while (t->next) {
-        print_value(t->pair.value);
-        t = t->next;
-        if (t->next) printf(", ");
-    }
-    printf("]");
-}
-
-void print_pair(KeyValue* pair) {
-    print_key(pair->key);
-    print_value(pair->value);
-}
-
-void _print_con(Object* o) {
-    Object* t = o;
-    printf("{");
-    while (t->next != NULL) {
-        print_pair(&t->pair);
-        t = t->next;
-        if (t->next) printf(", ");
-    }
-    printf("}");
-}
-
-void print_con(Object* o) {
-    _print_con(o);
-    printf("\n");
 }
 
 uint _add_value(Object* o, char key[100], char key_check, enum V_type type, void* data) {
@@ -138,35 +80,4 @@ Value get_value(Object* o, char key[100]) {
     Object* t;
     t = get(o, key);
     return t->pair.value;
-}
-
-int main() {
-    Object *o, *o1;
-    o = create_con();
-
-    int x = 42;
-    add_value(o, "a", INT, &x);
-
-    int y = 100;
-    o1 = create_con();
-    add_value(o1, "d", INT, &y);
-
-    add_value(o, "b", OBJECT, o1);
-
-    char str[] = "test";
-    add_value(o, "c", STRING, &str);
-
-    add_value(o, "e", ARRAY, NULL);
-    int z = 1;
-    add_item_array(get(o, "e"), INT, &z);
-    z = 2;
-    add_item_array(get(o, "e"), INT, &z);
-
-    print_con(o);
-    // // Object* o2;
-    // Value v;
-    // v = get_value(o, "a");
-    // print_value(v);
-
-    return 0;
 }
