@@ -2,7 +2,7 @@
 
 #include "on.h"
 
-void main() {
+int main() {
     Object *o, *o1;
     o = create_con();
 
@@ -23,7 +23,9 @@ void main() {
     add_item_array(get(o, "e"), INT, &z);
     add_item_array(get(o, "e"), OBJECT, o1);
 
-    print_con(o);
+    char *str_dump;
+    str_dump = dump_con(o);
+    printf("%s\n", str_dump);
     // // Object* o2;
     // Value v;
     // v = get_value(o, "a");

@@ -43,4 +43,6 @@ Value get_value(Object* o, char key[100]);
 
 void print_con(Object* o);
 
+char* dump_con(Object* o);
+
 #endif
