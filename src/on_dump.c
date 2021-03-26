@@ -4,6 +4,9 @@
 
 #include "on.h"
 
+uint dump_value(Value v, char *buffer, uint size);
+uint dump_objects(Object *o, char *buffer, uint size);
+
 uint string_append(char *buffer, uint size, const char *string) {
     if (buffer != NULL) {
         strcat(buffer, string);
@@ -47,6 +50,23 @@ uint dump_double(double _double, char *buffer, uint size) {
     return n;
 }
 
+uint dump_array(Object *o, char *buffer, uint size) {
+    uint n;
+    Object *t;
+    t = o;
+
+    n = string_append(buffer, size, "[");
+
+    while (t->next != NULL) {
+        n += dump_value(t->pair.value, buffer, size);
+        t = t->next;
+        if (t->next != NULL) n += string_append(buffer, size, ", ");
+    }
+
+    n += string_append(buffer, size, "]");
+    return n;
+}
+
 uint dump_value(Value v, char *buffer, uint size) {
     uint n;
     n = 0;
@@ -60,6 +80,12 @@ uint dump_value(Value v, char *buffer, uint size) {
             break;
         case STRING:
             n += dump_string(v._string, buffer, size);
+            break;
+        case ARRAY:
+            n += dump_array(v._obj, buffer, size);
+            break;
+        case OBJECT:
+            n += dump_objects(v._obj, buffer, size);
             break;
         default:
             n += string_append(buffer, size, "WIP");
