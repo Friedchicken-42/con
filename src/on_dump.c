@@ -144,6 +144,6 @@ char *dumps_con(Object *o) {
 }
 
 void dump_con(FILE *f, Object *o) {
-    ;
-    fprintf(f, dumps_con(o));
+    if (f == NULL) return;
+    fprintf(f, "%s", dumps_con(o));
 }
