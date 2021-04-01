@@ -50,6 +50,11 @@ uint dump_double(double _double, char *buffer, uint size) {
     return n;
 }
 
+uint dump_boolean(char _boolean, char *buffer, uint size) {
+    if (_boolean == 0) return string_append(buffer, size, "false");
+    return string_append(buffer, size, "true");
+}
+
 uint dump_array(Object *o, char *buffer, uint size) {
     uint n;
     Object *t;
@@ -77,6 +82,9 @@ uint dump_value(Value v, char *buffer, uint size) {
             break;
         case DOUBLE:
             n += dump_double(v._double, buffer, size);
+            break;
+        case BOOLEAN:
+            n += dump_boolean(v._boolean, buffer, size);
             break;
         case STRING:
             n += dump_string(v._string, buffer, size);
@@ -121,12 +129,11 @@ uint dump_objects(Object *o, char *buffer, uint size) {
     return n;
 }
 
-char *dump_con(Object *o) {
+char *dumps_con(Object *o) {
     char *string;
     uint size;
 
     size = dump_objects(o, NULL, 0);
-    // printf("%d\n", size);
 
     string = malloc(size);
     string[0] = '\0';
@@ -134,4 +141,9 @@ char *dump_con(Object *o) {
     dump_objects(o, string, size);
 
     return string;
+}
+
+void dump_con(FILE *f, Object *o) {
+    ;
+    fprintf(f, dumps_con(o));
 }

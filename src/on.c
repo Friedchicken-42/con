@@ -31,6 +31,9 @@ uint _add_value(Object* o, char key[100], char key_check, enum V_type type, void
         case DOUBLE:
             t->pair.value._double = *(double*)data;
             break;
+        case BOOLEAN:
+            t->pair.value._boolean = *(char*)data;
+            break;
         case STRING:
             strcpy(t->pair.value._string, (char*)data);
             break;

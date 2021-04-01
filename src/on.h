@@ -1,6 +1,8 @@
 #if !defined(CON)
 #define CON
 
+#include <stdio.h>
+
 typedef unsigned int uint;
 
 typedef struct Value Value;
@@ -10,6 +12,7 @@ typedef struct Object Object;
 enum V_type {
     INT,
     DOUBLE,
+    BOOLEAN,
     STRING,
     ARRAY,
     OBJECT,
@@ -19,6 +22,7 @@ struct Value {
     union {
         int _int;
         double _double;
+        char _boolean;
         char _string[100];
         Object* _obj;
     };
@@ -43,6 +47,7 @@ Value get_value(Object* o, char key[100]);
 
 void print_con(Object* o);
 
-char* dump_con(Object* o);
+char* dumps_con(Object* o);
+void dump_con(FILE* f, Object* o);
 
 #endif
