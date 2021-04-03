@@ -40,7 +40,7 @@ struct Object {
 };
 
 Object* create_con();
-void add_value(Object* o, char key[100], enum V_type type, void* data);
+Object* add_value(Object* o, char key[100], enum V_type type, void* data);
 void add_item_array(Object* o, enum V_type type, void* data);
 Object* get(Object* o, char key[100]);
 Value get_value(Object* o, char key[100]);
@@ -49,5 +49,7 @@ void print_con(Object* o);
 
 char* dumps_con(Object* o);
 void dump_con(FILE* f, Object* o);
+
+Object* loads_on(char* string);
 
 #endif

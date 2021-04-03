@@ -61,11 +61,12 @@ uint dump_array(Object *o, char *buffer, uint size) {
     t = o;
 
     n = string_append(buffer, size, "[");
+    t = t->next;
 
-    while (t->next != NULL) {
+    while (t != NULL) {
         n += dump_value(t->pair.value, buffer, size);
         t = t->next;
-        if (t->next != NULL) n += string_append(buffer, size, ", ");
+        if (t != NULL) n += string_append(buffer, size, ", ");
     }
 
     n += string_append(buffer, size, "]");
@@ -118,10 +119,10 @@ uint dump_objects(Object *o, char *buffer, uint size) {
 
     n = string_append(buffer, size, "{");
 
-    while (t->next != NULL) {
+    while (t != NULL) {
         n += dump_object(t, buffer, size);
         t = t->next;
-        if (t->next != NULL) n += string_append(buffer, size, ", ");
+        if (t != NULL) n += string_append(buffer, size, ", ");
     }
 
     n += string_append(buffer, size, "}");
