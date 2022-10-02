@@ -19,24 +19,24 @@ void on_free(void* o) {
     free(obj);
 }
 
-/*
+const char* on_type_string(on *o) {
+    const char* table[9] = {
+        [ON_EMPTY] = "Empty",
+        [ON_NULL] = "Null",
+        [ON_STRING] = "String",
+        [ON_INTEGER] = "Integer",
+        [ON_FLOAT] = "Float",
+        [ON_TRUE] = "True",
+        [ON_FALSE] = "False",
+        [ON_OBJECT] = "Object",
+        [ON_ARRAY] = "Array",
+    };
 
-   ON_EMPTY,
-   ON_NULL,
-   ON_STRING,
-   ON_INTEGER,
-   ON_FLOAT,
-   ON_TRUE,
-   ON_FALSE,
-   ON_OBJECT,
-   ON_ARRAY,
-   */
+    return table[o->type];
+}
 
 void on_print(on *o, int tab) {
-    const char* table[9] = {
-        "Empty", "Null", "String", "Integer", "Float", "True", "False", "Object", "Array"
-    };
-    printf("type: %s\n", table[o->type]);
+    printf("type: %s\n", on_type_string(o));
     switch (o->type) {
         case ON_EMPTY:
             break;
