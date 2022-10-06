@@ -1,27 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
-
-void node_free(void *n) {
-    node *x = (node*)n;
-    free(x->data);
-    free(x);
-}
+#include "../alloc/alloc.h"
 
 list *list_create() {
-    list *l = malloc(sizeof(list));
+    list *l = xmalloc(sizeof(list));
 
     l->head = NULL;
     l->tail = NULL;
     l->length = 0;
     l->func_dup = NULL;
-    l->func_free = node_free;
+    l->func_free = NULL;
 
     return l;
 }
 
 node *node_create(void *v) {
-    node *n = malloc(sizeof(node));
+    node *n = xmalloc(sizeof(node));
     n->data = v;
     n->prev = NULL;
     n->next = NULL;
@@ -30,7 +25,11 @@ node *node_create(void *v) {
 }
 
 void list_push(list *l, void *v) {
-    node *n = node_create(l->func_dup(v));
+    node *n = NULL;
+
+    if(l->func_dup) n = node_create(l->func_dup(v));
+    else n = node_create(v);
+
     if(l->tail == NULL) {
         l->tail = l->head = n;
     } else {
@@ -63,7 +62,8 @@ void list_free(void *l) {
     node *curr = li->head;
     while(curr != NULL) {
         node *next = curr->next;
-        li->func_free(curr);
+        if(li->func_free) li->func_free(curr->data);
+        free(curr);
         curr = next;
     }
     free(l);
@@ -73,7 +73,7 @@ void list_print(list *l) {
     printf("%16p << %zu >> %16p\n", l->head, l->length, l->tail);
     node *curr = l->head;
     while(curr != NULL) {
-        printf("%16p <- %s -> %16p\n", curr->prev, (char*)(curr->data), curr->next);
+        printf("%16p <- %16p -> %16p\n", curr->prev, curr->data, curr->next);
         curr = curr->next;
     }
 }

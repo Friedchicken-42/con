@@ -1,3 +1,6 @@
+#ifndef LIST_H
+#define LIST_H
+
 #include "stdlib.h"
 #include <stddef.h>
 
@@ -23,3 +26,5 @@ void list_push(list *l, void *v);
 node *list_pop(list *l);
 void list_free(void *l);
 void list_print(list *l);
+
+#endif // !LIST_H

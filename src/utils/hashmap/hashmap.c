@@ -1,11 +1,12 @@
 #include "hashmap.h"
+#include "../alloc/alloc.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 entry *entry_create(void *key, void *value, hashmap_func_dup dup) {
-    entry *e = malloc(sizeof(entry));
+    entry *e = xmalloc(sizeof(entry));
     e->key = dup(key);
     e->value = (void*)value;
     e->prev = NULL;
@@ -15,10 +16,10 @@ entry *entry_create(void *key, void *value, hashmap_func_dup dup) {
 }
 
 hashmap *hashmap_create(size_t size) {
-    hashmap *h = malloc(sizeof(hashmap));
+    hashmap *h = xmalloc(sizeof(hashmap));
 
     h->size = size;
-    h->entries = malloc(sizeof(entry*) * size);
+    h->entries = xmalloc(sizeof(entry*) * size);
     h->func_cmp = NULL;
     h->func_hash = NULL;
     h->func_dup = NULL;
@@ -50,7 +51,7 @@ void *hashmap_dup_str(void *str) {
     char *x = (char*)str;
     size_t len;
     for (len = 0; x[len] != '\0'; len++);
-    char *dest = malloc(len + 1);
+    char *dest = xmalloc(len + 1);
     strcpy(dest, x);
 
     return dest;

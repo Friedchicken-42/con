@@ -1,10 +1,12 @@
 #include "on.h"
+#include "utils/alloc/alloc.h"
 #include "utils/hashmap/hashmap.h"
+#include "utils/list/list.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 on *on_create() {
-    on *o = malloc(sizeof(on));
+    on *o = xmalloc(sizeof(on));
 
     o->data = NULL;
     o->type = ON_EMPTY;
@@ -50,22 +52,35 @@ void on_print(on *o, int tab) {
             printf("%s\n", (char*)o->data);
             break;
         case ON_FLOAT:
+            printf("%f\n", *(float*)o->data);
         case ON_TRUE:
+            printf("True\n");
         case ON_FALSE:
+            printf("False\n");
         case ON_OBJECT:
             printf("{\n");
-            tab++;
             hashmap *map = (hashmap*)o->data;
             for(int i = 0; i < map->size; i++) {
                 entry *node = map->entries[i];
                 while(node) {
                     printf("key: %s\n", (char*)node->key);
-                    on_print((on*)node->value, tab + 1);
+                    on_print((on*)node->value, tab);
                     node = node->next;
                 }
             }
             printf("}\n");
+            break;
         case ON_ARRAY:
+            printf("[\n");
+            list *l = (list*)o->data;
+            int i = 0;
+            for(node *n = l->head; n != NULL; n = n->next) {
+                printf("index: %d\n", i);
+                on_print((on*)n->data, tab);
+                i++;
+            }
+
+            printf("]\n");
           break;
     }
 }

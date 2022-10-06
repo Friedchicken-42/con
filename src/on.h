@@ -1,3 +1,6 @@
+#ifndef ON_H
+#define ON_H
+
 enum on_type {
     ON_EMPTY,
     ON_NULL,
@@ -21,3 +24,5 @@ typedef struct on_t {
 on *on_create();
 void on_free(void* o);
 void on_print(on *o, int tab);
+
+#endif // !ON_H

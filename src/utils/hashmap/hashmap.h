@@ -1,3 +1,6 @@
+#ifndef HASHMAP_H
+#define HASHMAP_H
+
 #include <stddef.h>
 #include "../list/list.h"
 
@@ -33,3 +36,5 @@ list *hashmap_keys(hashmap *h);
 void hashmap_free(void *h);
 
 void hashmap_print(hashmap *h);
+
+#endif // !HASHMAP_H
