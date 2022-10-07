@@ -43,7 +43,7 @@ void on_print(on *o, int tab) {
         case ON_EMPTY:
             break;
         case ON_NULL:
-            printf("null\n");
+            printf("Null\n");
             break;
         case ON_INTEGER:
             printf("%d\n", *(int*)o->data);
@@ -53,20 +53,20 @@ void on_print(on *o, int tab) {
             break;
         case ON_FLOAT:
             printf("%f\n", *(float*)o->data);
+            break;
         case ON_TRUE:
             printf("True\n");
+            break;
         case ON_FALSE:
             printf("False\n");
+            break;
         case ON_OBJECT:
             printf("{\n");
             hashmap *map = (hashmap*)o->data;
-            for(int i = 0; i < map->size; i++) {
-                entry *node = map->entries[i];
-                while(node) {
-                    printf("key: %s\n", (char*)node->key);
-                    on_print((on*)node->value, tab);
-                    node = node->next;
-                }
+            list *keys = map->keys;
+            for(node *k = keys->head; k != NULL; k = k->next) {
+                printf("key: %s\n", (char*)k->data);
+                on_print((on*)(hashmap_get(map, k->data)), tab);
             }
             printf("}\n");
             break;

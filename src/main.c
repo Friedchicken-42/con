@@ -1,5 +1,5 @@
-#include "utils/hashmap/hashmap.h"
 #include "utils/list/list.h"
+#include "utils/hashmap/hashmap.h"
 #include "on.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -19,7 +19,7 @@ int main (int argc, char *argv[]) {
     a->func_free = NULL;
 
     hashmap_set(map, "b", on_create());
-    on *ooo = hashmap_get(map, "b")->value;
+    on *ooo = hashmap_get(map, "b");
     ooo->type = ON_OBJECT;
     ooo->func_free = hashmap_free;
     ooo->data = hashmap_create_str(5);
@@ -45,8 +45,8 @@ int main (int argc, char *argv[]) {
     asdf2->data = "item 2";
     list_push(l, asdf2);
 
-    hashmap_print(((on*)(hashmap_get(map, "b")->value))->data);
-    list_print(((on*)(hashmap_get(map, "c")->value))->data);
+    hashmap_print(((on*)(hashmap_get(map, "b")))->data);
+    list_print(((on*)(hashmap_get(map, "c")))->data);
 
     obj->data = map;
 

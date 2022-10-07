@@ -9,6 +9,7 @@ list *list_create() {
     l->head = NULL;
     l->tail = NULL;
     l->length = 0;
+    l->func_cmp = NULL;
     l->func_dup = NULL;
     l->func_free = NULL;
 
@@ -57,6 +58,22 @@ node *list_pop(list *l) {
     return n;
 }
 
+int list_remove(list *l, void *x) {
+    if(l->length == 0) return 0;
+    if(l->func_cmp == NULL) return -1;
+
+    for(node *n = l->head; n != NULL; n = n->next) {
+        if(l->func_cmp(n->data, x)) {
+            if(n->prev) n->prev = n->next;
+            if(n->next) n->next = n->prev;
+
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 void list_free(void *l) {
     list *li = (list*)l;
     node *curr = li->head;
@@ -70,7 +87,7 @@ void list_free(void *l) {
 }
 
 void list_print(list *l) {
-    printf("%16p << %zu >> %16p\n", l->head, l->length, l->tail);
+    printf("%16p << %d >> %16p\n", l->head, l->length, l->tail);
     node *curr = l->head;
     while(curr != NULL) {
         printf("%16p <- %16p -> %16p\n", curr->prev, curr->data, curr->next);
