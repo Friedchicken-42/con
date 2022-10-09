@@ -58,20 +58,17 @@ node *list_pop(list *l) {
     return n;
 }
 
-int list_remove(list *l, void *x) {
-    if(l->length == 0) return 0;
-    if(l->func_cmp == NULL) return -1;
+void *list_get(list *l, int index) {
+    if (index >= l->length) return NULL;
+    node *n = l->head;
 
-    for(node *n = l->head; n != NULL; n = n->next) {
-        if(l->func_cmp(n->data, x)) {
-            if(n->prev) n->prev = n->next;
-            if(n->next) n->next = n->prev;
-
-            return 0;
+    for(uint i = 0; i < l->length; i++) {
+        if (i == index) {
+            return n;
         }
+        n = n->next;
     }
-
-    return 1;
+    return NULL;
 }
 
 void list_free(void *l) {

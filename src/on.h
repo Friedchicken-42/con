@@ -23,6 +23,13 @@ typedef struct on_t {
 
 on *on_create();
 void on_free(void* o);
-void on_print(on *o, int tab);
+void on_print(on *o);
+
+on *on_create_object();
+on *on_create_array();
+int on_add(on *o, char *key, void *value, enum on_type type);
+void *on_get(on *o, void *key);
+
+const char* on_type_string(on *o);
 
 #endif // !ON_H

@@ -27,7 +27,7 @@ typedef struct list_t {
 list *list_create();
 void list_push(list *l, void *v);
 node *list_pop(list *l);
-int list_remove(list *l, void *x);
+void *list_get(list *l, int index);
 
 void list_free(void *l);
 void list_print(list *l);

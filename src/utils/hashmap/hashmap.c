@@ -1,8 +1,8 @@
 #include "hashmap.h"
 #include "../alloc/alloc.h"
+#include "../string/string.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef unsigned int uint;
 
@@ -33,7 +33,7 @@ hashmap *hashmap_create(uint size) {
 }
 
 int hashmap_cmp_str(void *a, void *b) {
-    return strcmp(a, b);
+    return string_cmp(a, b);
 }
 
 int hashmap_hash_str(void *key) {
@@ -49,26 +49,16 @@ int hashmap_hash_str(void *key) {
     return hash;
 }
 
-void *hashmap_dup_str(void *str) {
-    char *x = (char*)str;
-    uint len = 0;
-    for (len = 0; x[len] != '\0'; len++);
-    char *dest = xmalloc(len + 1);
-    strcpy(dest, x);
-
-    return dest;
-}
-
 hashmap *hashmap_create_str(uint size) {
     hashmap *h = hashmap_create(size);
     h->func_cmp = hashmap_cmp_str;
     h->func_hash = hashmap_hash_str;
-    h->func_dup = hashmap_dup_str;
+    h->func_dup = string_dup;
     h->func_free_key = free;
     h->func_free_value = NULL;
 
     h->keys->func_free = free;
-    h->keys->func_dup = hashmap_dup_str;
+    h->keys->func_dup = string_dup;
 
     return h;
 }
@@ -94,12 +84,16 @@ int hashmap_set(hashmap *h, void *key, void *value) {
         h->entries[hash] = entry_create(key, value, h->func_dup);
     } else {
         entry *curr = node;
-        while(curr->next != NULL) {
-            if(!h->func_cmp(key, curr->key)) return 1;
+        entry *prev = NULL;
+        while(curr != NULL) {
+            if(!h->func_cmp(key, curr->key)) {
+                return 1;
+            }
+            prev = curr;
             curr = curr->next;
         }
 
-        curr->next = entry_create(key, value, h->func_dup);
+        prev->next = entry_create(key, value, h->func_dup);
     }
 
     list_push(h->keys, key);

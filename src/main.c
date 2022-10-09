@@ -6,53 +6,29 @@
 #include <stdlib.h>
 
 int main (int argc, char *argv[]) {
-    on *obj = on_create();
-    obj->type = ON_OBJECT;
-    obj->func_free = hashmap_free;
-    hashmap *map = hashmap_create_str(3);
-    map->func_free_value = on_free;
+    int x = 42;
+    float y = 12.3;
 
-    on *a = on_create();
-    hashmap_set(map, "a", a);
-    a->data = "KEK";
-    a->type = ON_STRING;
-    a->func_free = NULL;
+    on *obj = on_create_object();
+    on_add(obj, "a", "KEK", ON_STRING);
+    on_add(obj, "b", &x, ON_INTEGER);
+    on_add(obj, "c", &y, ON_FLOAT);
+    on_add(obj, "d", NULL, ON_OBJECT);
+    on_add(obj, "e", NULL, ON_ARRAY);
 
-    hashmap_set(map, "b", on_create());
-    on *ooo = hashmap_get(map, "b");
-    ooo->type = ON_OBJECT;
-    ooo->func_free = hashmap_free;
-    ooo->data = hashmap_create_str(5);
+    on_print(obj);
 
-    on* asdf = on_create();
-    hashmap_set(map, "c", asdf);
-    asdf->type = ON_ARRAY;
-    asdf->func_free = list_free;
+    printf("-----------------\n");
 
-    list* l = list_create();
-    asdf->data = l;
-    l->func_free = on_free;
+    on *ooo = on_get(obj, "d");
+    on_add(ooo, "asdf", "ASDF", ON_STRING);
+    on_print(ooo);
 
-    on* asdf1 = on_create();
-    asdf1->type = ON_STRING;
-    asdf1->func_free = NULL;
-    asdf1->data = "item 1";
-    list_push(l, asdf1);
+    printf("-----------------\n");
 
-    on* asdf2 = on_create();
-    asdf2->type = ON_STRING;
-    asdf2->func_free = NULL;
-    asdf2->data = "item 2";
-    list_push(l, asdf2);
+    on_print(obj);
 
-    hashmap_print(((on*)(hashmap_get(map, "b")))->data);
-    list_print(((on*)(hashmap_get(map, "c")))->data);
-
-    obj->data = map;
-
-    hashmap_print(obj->data);
-
-    on_print(obj, 0);
     on_free(obj);
+
     return 0;
 }
