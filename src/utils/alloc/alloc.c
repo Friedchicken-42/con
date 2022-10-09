@@ -9,3 +9,7 @@ void *checked(void *v) {
 void *xmalloc(unsigned long n) {
     return checked(malloc(n));
 }
+
+void *xrealloc(void *ptr, unsigned long n) {
+    return checked(realloc(ptr, n));
+}

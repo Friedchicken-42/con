@@ -1,9 +1,12 @@
+#include "utils/alloc/alloc.h"
 #include "utils/list/list.h"
 #include "utils/hashmap/hashmap.h"
 #include "on.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "utils/string/string.h"
 
 int main (int argc, char *argv[]) {
     int x = 42;
@@ -29,6 +32,13 @@ int main (int argc, char *argv[]) {
     on_print(obj);
 
     on_free(obj);
+
+    char *s = NULL;
+    s = string_append(s, "asdf");
+    s = string_append(s, "1234");
+    printf("%s\n", s);
+
+    free(s);
 
     return 0;
 }
