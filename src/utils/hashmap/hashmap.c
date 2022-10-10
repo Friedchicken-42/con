@@ -37,8 +37,6 @@ int hashmap_cmp_str(void *a, void *b) {
 }
 
 int hashmap_hash_str(void *key) {
-    //will fix this
-
     uint hash = 0;
     char *k = (char*)key;
     while(*k != '\0') {

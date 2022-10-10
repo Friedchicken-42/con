@@ -11,7 +11,6 @@ void json_dumps_object(on *o, string *str) {
     hashmap *map = (hashmap*)o->data;
     list *keys = map->keys;
     for(node *k = keys->head; k != NULL; k = k->next) {
-        // printf("key: %s\n", (char*)k->data);
         string_extend(str, "\"");
         string_extend(str, (char*)k->data);
         string_extend(str, "\"");
@@ -19,11 +18,26 @@ void json_dumps_object(on *o, string *str) {
         json_dumps_inner((on*)(hashmap_get(map, k->data)), str);
 
         if(k->next != NULL) string_extend(str, ", ");
-        // on_print((on*)(hashmap_get(map, k->data)));
     }
 
     string_extend(str, "}");
 }
+
+void json_dumps_array(on *o, string *str) {
+    string_extend(str, "[");
+
+    list *l = (list*)o->data;
+    int i = 0;
+    for(node *n = l->head; n != NULL; n = n->next) {
+        json_dumps_inner((on*)n->data, str);
+
+        if(n->next != NULL) string_extend(str, ", ");
+        i++;
+    }
+
+    string_extend(str, "]");
+}
+
 
 void json_dumps_integer(string *str, int n) {
     int len = snprintf(NULL, 0, "%d", n);
@@ -39,19 +53,6 @@ void json_dumps_float(string *str, float n) {
     snprintf(s, len + 1, "%f", n);
     string_extend(str, s);
     free(s);
-}
-
-void json_dumps_array(on *o, string *str) {
-    string_extend(str, "[");
-
-    list *l = (list*)o->data;
-    int i = 0;
-    for(node *n = l->head; n != NULL; n = n->next) {
-        json_dumps_inner((on*)n->data, str);
-        i++;
-    }
-
-    string_extend(str, "]");
 }
 
 void json_dumps_inner(on *o, string *str) {

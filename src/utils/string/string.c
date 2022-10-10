@@ -9,7 +9,6 @@ typedef unsigned int uint;
 void *string_dup(void *str) {
     char *x = (char*)str;
     uint len = strlen(x);
-    // for (len = 0; x[len] != '\0'; len++);
     char *dest = xmalloc(len + 1);
     strcpy(dest, x);
 

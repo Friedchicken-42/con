@@ -20,23 +20,17 @@ int main (int argc, char *argv[]) {
     on_add(obj, "d", NULL, ON_OBJECT);
     on_add(obj, "e", NULL, ON_ARRAY);
 
-    on_print(obj);
-
-    printf("-----------------\n");
+    on *test = on_create_object();
+    on_add(test, "qwer", "QWER", ON_STRING);
+    on_add(obj, "f", test, ON_OBJECT);
 
     on *ooo = on_get(obj, "d");
     on_add(ooo, "asdf", "ASDF", ON_STRING);
-    on_print(ooo);
 
     on *arr = on_get(obj, "e");
     on_add(arr, NULL, "test1", ON_STRING);
-    on_print(arr);
-
-    printf("-----------------\n");
-
-    on_print(obj);
-
-    printf("-----------------\n");
+    on_add(arr, NULL, "test2", ON_STRING);
+    on_add(arr, NULL, "test3", ON_STRING);
 
     char *s = json_dumps(obj);
     printf("%s\n", s);

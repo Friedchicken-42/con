@@ -114,10 +114,12 @@ on *on_create_type(void *value, enum on_type type) {
             o->type = ON_FALSE;
             break;
         case ON_OBJECT:
-            o = on_create_object();
+            if (value != NULL) o = value;
+            else o = on_create_object();
             break;
         case ON_ARRAY:
-            o = on_create_array();
+            if (value != NULL) o = value;
+            else o = on_create_array();
             break;
     }
 
