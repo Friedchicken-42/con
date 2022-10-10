@@ -135,6 +135,10 @@ int on_add_object(on *o, char *key, void *value, enum on_type type) {
 }
 
 int on_add_array(on *o, void *value, enum on_type type) {
+    list *arr = (list*)o->data;
+    on *obj = on_create_type(value, type);
+
+    list_push(arr, obj);
     return 0;
 }
 

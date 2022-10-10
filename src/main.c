@@ -2,6 +2,7 @@
 #include "utils/list/list.h"
 #include "utils/hashmap/hashmap.h"
 #include "on.h"
+#include "json/json.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,18 +28,21 @@ int main (int argc, char *argv[]) {
     on_add(ooo, "asdf", "ASDF", ON_STRING);
     on_print(ooo);
 
+    on *arr = on_get(obj, "e");
+    on_add(arr, NULL, "test1", ON_STRING);
+    on_print(arr);
+
     printf("-----------------\n");
 
     on_print(obj);
 
-    on_free(obj);
+    printf("-----------------\n");
 
-    char *s = NULL;
-    s = string_append(s, "asdf");
-    s = string_append(s, "1234");
+    char *s = json_dumps(obj);
     printf("%s\n", s);
-
     free(s);
+
+    on_free(obj);
 
     return 0;
 }
