@@ -10,6 +10,7 @@
 #include "utils/string/string.h"
 
 int main (int argc, char *argv[]) {
+    /*
     int x = 42;
     float y = 12.3;
 
@@ -37,6 +38,11 @@ int main (int argc, char *argv[]) {
     free(s);
 
     on_free(obj);
+    */
+
+    on *o = json_loads("{\"a\": \"b\"}");
+    on_print(o);
+    on_free(o);
 
     return 0;
 }

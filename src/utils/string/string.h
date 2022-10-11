@@ -9,11 +9,15 @@ typedef struct string_t {
     char *data;
     uint length;
     uint size;
+    uint index;
 } string;
 
 string *string_create();
+string *string_from(char *s);
 void string_extend(string *str, const char* s2);
 char *string_str(string *str);
+char string_peek(string *str);
+char string_next(string *str);
 void string_free(void *str);
 
 #endif // !STRING_H

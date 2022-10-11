@@ -20,10 +20,24 @@ int string_cmp(char* s1, char* s2) {
 }
 
 string *string_create() {
-    string *str = malloc(sizeof(string));
-    str->data = malloc(64);
+    string *str = xmalloc(sizeof(string));
+    str->data = xmalloc(64);
     str->length = 0;
     str->size = 64;
+    str->index = 0;
+
+    return str;
+}
+
+string *string_from(char *s) {
+    int len = strlen(s);
+    string *str = xmalloc(sizeof(string));
+    str->data = xmalloc(len);
+    str->length = len;
+    str->size = len;
+    str->index = 0;
+
+    strcpy(str->data, s);
 
     return str;
 }
@@ -47,6 +61,22 @@ void string_extend(string *str, const char* s2) {
 char *string_str(string *str) {
     if(str->data[str->length - 1] != '\0') string_push(str, '\0');
     return string_dup(str->data);
+}
+
+char string_peek(string *str) {
+    if(str->index >= str->length) return 0;
+    if(str->data[str->index] == '\0') return 0;
+
+    return str->data[str->index];
+}
+
+char string_next(string *str) {
+    char chr = string_peek(str);
+    if(chr == 0) return 0;
+
+    str->index++;
+
+    return chr;
 }
 
 void string_free(void *str) {
