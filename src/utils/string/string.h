@@ -14,6 +14,7 @@ typedef struct string_t {
 
 string *string_create();
 string *string_from(char *s);
+void string_push(string *str, const char c);
 void string_extend(string *str, const char* s2);
 char *string_str(string *str);
 char string_peek(string *str);

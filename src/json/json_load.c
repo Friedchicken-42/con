@@ -1,7 +1,29 @@
 #include "../utils/string/string.h"
 #include "../on.h"
 #include "json.h"
+#include <stdio.h>
 #include <stdlib.h>
+
+char *json_read_key(string *str) {
+    if(string_peek(str) != '\"') return NULL;
+    string_next(str);
+
+    string *key = string_create();
+    while(string_peek(str) != '\"') {
+        char x = string_next(str);
+        if(x == 0) {
+            string_free(key);
+            return NULL;
+        }
+
+        string_push(key, x);
+    }
+
+    char *res = string_str(key);
+    printf("%s\n", res);
+    string_free(key);
+    return res;
+}
 
 on* json_loads_object(string *str) {
     on *o = on_create_object();
@@ -12,6 +34,9 @@ on* json_loads_object(string *str) {
             on_free(o);
             return NULL;
         }
+        char *key = json_read_key(str);
+
+        free(key);
         string_next(str);
     }
 
