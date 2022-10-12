@@ -71,13 +71,10 @@ char string_peek(string *str) {
     return str->data[str->index];
 }
 
-char string_next(string *str) {
+void string_next(string *str) {
     char chr = string_peek(str);
-    if(chr == 0) return 0;
-
+    if(chr == 0) return;
     str->index++;
-
-    return chr;
 }
 
 void string_free(void *str) {

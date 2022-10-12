@@ -39,12 +39,13 @@ int main (int argc, char *argv[]) {
 
     on_free(obj);
     */
-
-    on *o = json_loads("{\"asdf\": \"zxcv\", \"\": \"bbbb\"}");
+    char *input = "{\"asdf\": \"zxcv\", \"a\": true, \"b\": false, \"c\": null}";
+    printf("input: %s\n", input);
+    on *o = json_loads(input);
     if(o == NULL) return 1;
     on_print(o);
     char *str = json_dumps(o);
-    printf("%s\n", str);
+    printf("output: %s\n", str);
     free(str);
     on_free(o);
 

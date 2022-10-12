@@ -18,7 +18,7 @@ void string_push(string *str, const char c);
 void string_extend(string *str, const char* s2);
 char *string_str(string *str);
 char string_peek(string *str);
-char string_next(string *str);
+void string_next(string *str);
 void string_free(void *str);
 
 #endif // !STRING_H
