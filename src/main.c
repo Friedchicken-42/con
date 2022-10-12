@@ -40,8 +40,12 @@ int main (int argc, char *argv[]) {
     on_free(obj);
     */
 
-    on *o = json_loads("{\"a\": \"b\"}");
+    on *o = json_loads("{\"asdf\": \"zxcv\", \"\": \"bbbb\"}");
+    if(o == NULL) return 1;
     on_print(o);
+    char *str = json_dumps(o);
+    printf("%s\n", str);
+    free(str);
     on_free(o);
 
     return 0;

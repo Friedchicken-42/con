@@ -32,7 +32,7 @@ string *string_create() {
 string *string_from(char *s) {
     int len = strlen(s);
     string *str = xmalloc(sizeof(string));
-    str->data = xmalloc(len);
+    str->data = xmalloc(len + 1);
     str->length = len;
     str->size = len;
     str->index = 0;
@@ -59,7 +59,8 @@ void string_extend(string *str, const char* s2) {
 }
 
 char *string_str(string *str) {
-    if(str->data[str->length - 1] != '\0') string_push(str, '\0');
+    if(str->length == 0) string_push(str, '\0');
+    else if(str->data[str->length - 1] != '\0') string_push(str, '\0');
     return string_dup(str->data);
 }
 
