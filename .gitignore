@@ -42,6 +42,9 @@
 *.idb
 *.pdb
 
+# Dumps
+vgcore.*
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd
