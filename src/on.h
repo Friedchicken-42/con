@@ -30,6 +30,6 @@ on *on_create_array();
 int on_add(on *o, char *key, void *value, enum on_type type);
 void *on_get(on *o, void *key);
 
-const char* on_type_string(on *o);
+const char* on_type_string(enum on_type type);
 
 #endif // !ON_H

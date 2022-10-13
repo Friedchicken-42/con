@@ -48,7 +48,11 @@ json_result json_result_create() {
 }
 
 void json_skip_spaces(string *str) {
-    while(string_peek(str) == ' ') string_next(str);
+    while(1) {
+        char c = string_peek(str);
+        if(c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
+        string_next(str);
+    }
 }
 
 json_result json_read_string(string *str) {
@@ -146,6 +150,8 @@ json_result json_read_null(string *str) {
     return result;
 }
 
+json_result json_loads_inner(string *str);
+
 json_result json_read_value(string *str) {
     json_result result = json_result_create();
 
@@ -158,6 +164,12 @@ json_result json_read_value(string *str) {
             return json_read_false(str);
         case 'n':
             return json_read_null(str);
+        case '{':
+        case '[':
+            return json_loads_inner(str);
+        default:
+            // TODO: number
+            break;
     }
 
     result.err.type = UNEXPECTED_END;
@@ -168,6 +180,11 @@ json_result json_read_value(string *str) {
 
 json_result json_loads_object(string *str) {
     json_result result = json_result_create();
+    if(string_peek(str) != '{') {
+        result.err.type = WRONG_CHARACTER;
+        result.err.index = str->index;
+        return result;
+    }
 
     on *o = on_create_object();
     string_next(str);
@@ -206,10 +223,17 @@ json_result json_loads_object(string *str) {
             return value_res;
         }
 
+        // printf("err type: %s\n", json_err_string(value_res.err.type));
+        printf("obj type: %s\n", on_type_string(value_res.ok.type));
+
         on_add(o, key, value_res.ok.value, value_res.ok.type);
 
         free(key);
-        if (value_res.ok.value != NULL) free(value_res.ok.value);
+        if (value_res.ok.value != NULL) {
+            if(value_res.ok.type != ON_ARRAY && value_res.ok.type != ON_OBJECT) {
+                free(value_res.ok.value);
+            }
+        }
 
         json_skip_spaces(str);
         if(string_peek(str) != ',') break;
@@ -224,6 +248,8 @@ json_result json_loads_object(string *str) {
         return result;
     }
 
+    string_next(str);
+
     result.ok.value = o;
     result.ok.type = ON_OBJECT;
     return result;
@@ -231,7 +257,56 @@ json_result json_loads_object(string *str) {
 
 json_result json_loads_array(string *str) {
     json_result result = json_result_create();
+
+    if(string_peek(str) != '[') {
+        result.err.type = WRONG_CHARACTER;
+        result.err.index = str->index;
+        return result;
+    }
+
+    string_next(str);
     on *o = on_create_array();
+
+    while(1) {
+        if(string_peek(str) == 0) {
+            on_free(o);
+            result.err.type = UNEXPECTED_END;
+            result.err.index = str->index;
+            return result;
+        }
+
+        json_skip_spaces(str);
+
+        json_result value_res = json_read_value(str);
+        if(value_res.err.type != OK) {
+            on_free(o);
+            return value_res;
+        }
+
+        on_add(o, NULL, value_res.ok.value, value_res.ok.type);
+
+        if(value_res.ok.value != NULL) {
+            if(value_res.ok.type != ON_OBJECT && value_res.ok.type != ON_ARRAY) {
+                free(value_res.ok.value);
+            }
+        }
+
+        json_skip_spaces(str);
+        if(string_peek(str) != ',') break;
+        string_next(str);
+        json_skip_spaces(str);
+
+    }
+
+    if(string_peek(str) != ']') {
+        on_free(o);
+        result.err.type = WRONG_CHARACTER;
+        result.err.index = str->index;
+        return result;
+    }
+
+
+    string_next(str);
 
     result.ok.value = o;
     result.ok.type = ON_ARRAY;

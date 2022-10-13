@@ -48,7 +48,7 @@ void on_free(void* o) {
     free(obj);
 }
 
-const char* on_type_string(on *o) {
+const char* on_type_string(enum on_type type) {
     const char* table[9] = {
         [ON_EMPTY] = "Empty",
         [ON_NULL] = "Null",
@@ -61,7 +61,7 @@ const char* on_type_string(on *o) {
         [ON_ARRAY] = "Array",
     };
 
-    return table[o->type];
+    return table[type];
 }
 
 void on_add_string(on *o, char* value) {
@@ -116,10 +116,12 @@ on *on_create_type(void *value, enum on_type type) {
         case ON_OBJECT:
             if (value != NULL) o = value;
             else o = on_create_object();
+            o->type = ON_OBJECT;
             break;
         case ON_ARRAY:
             if (value != NULL) o = value;
             else o = on_create_array();
+            o->type = ON_ARRAY;
             break;
     }
 
@@ -162,7 +164,7 @@ void *on_get(on *o, void *key) {
 }
 
 void on_print(on *o) {
-    printf("type: %s\n", on_type_string(o));
+    printf("type: %s\n", on_type_string(o->type));
     switch (o->type) {
         case ON_EMPTY:
             break;
