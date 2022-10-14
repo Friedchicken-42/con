@@ -22,8 +22,8 @@ int main (int argc, char *argv[]) {
     on_add(obj, "e", NULL, ON_ARRAY);
 
     on *test = on_create_object();
-    on_add(test, "qwer", "QWER", ON_STRING);
     on_add(obj, "f", test, ON_OBJECT);
+    on_add(test, "qwer", "QWER", ON_STRING);
 
     on *ooo = on_get(obj, "d");
     on_add(ooo, "asdf", "ASDF", ON_STRING);
@@ -39,7 +39,7 @@ int main (int argc, char *argv[]) {
 
     on_free(obj);
     */
-    char *input = "{\"asdf\": \"zxcv\", \"a\": true, \"b\": false, \"c\": null, \"d\": {\"aa\": \"bb\"}, \"e\": [true, false]}";
+    char *input = "{\"asdf\": \"zxcv\", \"a\": true, \"b\": false, \"c\": null, \"d\": {\"aa\": \"bb\"}, \"e\": [true, false], \"f\": -123456, \"g\": 12.34, \"h\": 12.3e-5}";
     printf("input: %s\n", input);
     on *o = json_loads(input);
     if(o == NULL) return 1;
