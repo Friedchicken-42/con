@@ -48,7 +48,7 @@ void json_dumps_integer(string *str, int n) {
     free(s);
 }
 
-void json_dumps_float(string *str, float n) {
+void json_dumps_double(string *str, double n) {
     int len = snprintf(NULL, 0, "%f", n);
     char *s = malloc(len + 1);
     snprintf(s, len + 1, "%f", n);
@@ -71,8 +71,8 @@ void json_dumps_inner(on *o, string *str) {
         case ON_INTEGER:
             json_dumps_integer(str, *(int*)o->data);
             break;
-        case ON_FLOAT:
-            json_dumps_float(str, *(float*)o->data);
+        case ON_DOUBLE:
+            json_dumps_double(str, *(double*)o->data);
             break;
         case ON_TRUE:
             string_extend(str, "true");

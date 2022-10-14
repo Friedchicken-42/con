@@ -12,12 +12,12 @@
 int main (int argc, char *argv[]) {
     /*
     int x = 42;
-    float y = 12.3;
+    double y = 12.3;
 
     on *obj = on_create_object();
     on_add(obj, "a", "KEK", ON_STRING);
     on_add(obj, "b", &x, ON_INTEGER);
-    on_add(obj, "c", &y, ON_FLOAT);
+    on_add(obj, "c", &y, ON_DOUBLE);
     on_add(obj, "d", NULL, ON_OBJECT);
     on_add(obj, "e", NULL, ON_ARRAY);
 

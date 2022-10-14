@@ -256,7 +256,7 @@ json_result json_read_number(string *str) {
 
     printf("%d %d %d\n", num, fra, exp);
 
-    float fraction = fra;
+    double fraction = fra;
     while(fraction > 1) {
         fraction /= 10;
     }
@@ -268,7 +268,7 @@ json_result json_read_number(string *str) {
         result.ok.value = number;
         result.ok.type = ON_INTEGER;
     } else {
-        float *number = xmalloc(sizeof(float));
+        double *number = xmalloc(sizeof(double));
         *number = num + fraction;
         int exp_abs = exp >= 0 ? exp : -exp;
         for(uint i = 0; i < exp_abs; i++) {
@@ -279,7 +279,7 @@ json_result json_read_number(string *str) {
         printf("%f\n", *number);
 
         result.ok.value = number;
-        result.ok.type = ON_FLOAT;
+        result.ok.type = ON_DOUBLE;
     }
 
     free(int_res.ok.value);

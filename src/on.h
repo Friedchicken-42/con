@@ -6,7 +6,7 @@ enum on_type {
     ON_NULL,
     ON_STRING,
     ON_INTEGER,
-    ON_FLOAT,
+    ON_DOUBLE,
     ON_TRUE,
     ON_FALSE,
     ON_OBJECT,

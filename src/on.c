@@ -54,7 +54,7 @@ const char* on_type_string(enum on_type type) {
         [ON_NULL] = "Null",
         [ON_STRING] = "String",
         [ON_INTEGER] = "Integer",
-        [ON_FLOAT] = "Float",
+        [ON_DOUBLE] = "Double",
         [ON_TRUE] = "True",
         [ON_FALSE] = "False",
         [ON_OBJECT] = "Object",
@@ -79,11 +79,11 @@ void on_add_integer(on *o, int value) {
     o->func_free = free;
 }
 
-void on_add_float(on *o, float value) {
-    float *x = malloc(sizeof(float));
+void on_add_double(on *o, double value) {
+    double *x = malloc(sizeof(double));
     *x = value;
 
-    o->type = ON_FLOAT;
+    o->type = ON_DOUBLE;
     o->data = x;
     o->func_free = free;
 }
@@ -104,8 +104,8 @@ on *on_create_type(void *value, enum on_type type) {
         case ON_INTEGER:
             on_add_integer(o, *(int*)value);
             break;
-        case ON_FLOAT:
-            on_add_float(o, *(float*)value);
+        case ON_DOUBLE:
+            on_add_double(o, *(double*)value);
             break;
         case ON_TRUE:
             o->type = ON_TRUE;
@@ -177,8 +177,8 @@ void on_print(on *o) {
         case ON_STRING:
             printf("%s\n", (char*)o->data);
             break;
-        case ON_FLOAT:
-            printf("%f\n", *(float*)o->data);
+        case ON_DOUBLE:
+            printf("%f\n", *(double*)o->data);
             break;
         case ON_TRUE:
             printf("True\n");
