@@ -11,6 +11,7 @@ enum json_err_type {
     UNEXPECTED_END,
     EMPTY_KEY,
     MISSING_DIGIT,
+    INTERNAL_ERROR,
 };
 
 const char* json_err_string(enum json_err_type err) {
@@ -20,6 +21,7 @@ const char* json_err_string(enum json_err_type err) {
         [UNEXPECTED_END] = "Unexpected End",
         [EMPTY_KEY] = "Empty Key",
         [MISSING_DIGIT] = "Missing Digit",
+        [INTERNAL_ERROR] = "Internal Error",
     };
 
     return table[err];
@@ -364,13 +366,19 @@ json_result json_read_object(string *str) {
         // printf("err type: %s\n", json_err_string(value_res.err.type));
         printf("obj type: %s\n", on_type_string(value_res.ok.type));
 
-        on_add(o, key, value_res.ok.value, value_res.ok.type);
+        int status = on_add(o, key, value_res.ok.value, value_res.ok.type);
 
         free(key);
         if (value_res.ok.value != NULL) {
             if(value_res.ok.type != ON_ARRAY && value_res.ok.type != ON_OBJECT) {
                 free(value_res.ok.value);
             }
+        }
+
+        if(status != 0) {
+            result.err.type = INTERNAL_ERROR;
+            result.err.index = str->index;
+            return result;
         }
 
         json_skip_spaces(str);

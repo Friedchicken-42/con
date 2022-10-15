@@ -132,8 +132,10 @@ int on_add_object(on *o, char *key, void *value, enum on_type type) {
     hashmap *map = (hashmap*)o->data;
     on *obj = on_create_type(value, type);
 
+    void *prev = hashmap_get(map, key);
     int status = hashmap_set(map, key, obj);
-    if(status != 0) on_free(obj);
+    if(status != 0 && prev == 0) return 1;
+    if(status != 0) on_free(prev);
 
     return 0;
 }
@@ -151,8 +153,8 @@ int on_add(on *o, char *key, void *value, enum on_type type) {
     if(o->type == ON_OBJECT && key == NULL) return -2;
     if(o->type == ON_ARRAY && key != NULL) return -3;
 
-    if(o->type == ON_OBJECT) on_add_object(o, key, value, type);
-    if(o->type == ON_ARRAY) on_add_array(o, value, type);
+    if(o->type == ON_OBJECT) return on_add_object(o, key, value, type);
+    if(o->type == ON_ARRAY) return on_add_array(o, value, type);
 
     return 0;
 }

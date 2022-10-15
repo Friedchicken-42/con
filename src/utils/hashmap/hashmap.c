@@ -85,6 +85,7 @@ int hashmap_set(hashmap *h, void *key, void *value) {
         entry *prev = NULL;
         while(curr != NULL) {
             if(!h->func_cmp(key, curr->key)) {
+                curr->value = value;
                 return 1;
             }
             prev = curr;
