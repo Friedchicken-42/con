@@ -79,6 +79,10 @@ json_result json_read_string(string *str) {
             result.err.type = UNEXPECTED_END;
             result.err.index = str->index;
             return result;
+        } else if(x == '\\') {
+            string_push(key_str, x);
+            x = string_peek(str);
+            string_next(str);
         }
 
         string_push(key_str, x);
@@ -182,7 +186,6 @@ json_result json_read_integer(string *str) {
 
     while(json_is_digit(string_peek(str))) {
         *number = *number * 10 + string_peek(str) - '0';
-        printf("number: %d\n", *number);
         string_next(str);
     }
     *number = (sign ? -1 : 1) * *number;
@@ -202,7 +205,6 @@ json_result json_read_fraction(string *str) {
 
     while(json_is_digit(string_peek(str))) {
         *fraction = *fraction * 10 + string_peek(str) - '0';
-        printf("fraction: %d\n", *fraction);
         string_next(str);
     }
 
@@ -232,7 +234,6 @@ json_result json_read_exponent(string *str) {
 
     while(json_is_digit(string_peek(str))) {
         *exponent = *exponent * 10 + string_peek(str) - '0';
-        printf("exponent: %d\n", *exponent);
         string_next(str);
     }
 
@@ -256,13 +257,10 @@ json_result json_read_number(string *str) {
     int fra = *(int*)(fra_res.ok.value);
     int exp = *(int*)(exp_res.ok.value);
 
-    printf("%d %d %d\n", num, fra, exp);
-
     double fraction = fra;
     while(fraction > 1) {
         fraction /= 10;
     }
-    printf("%f\n", fraction);
 
     if(fra == 0 && exp == 0) {
         int *number = xmalloc(sizeof(int));
@@ -277,8 +275,6 @@ json_result json_read_number(string *str) {
             if(exp > 0) *number = *number * 10;
             else *number = *number / 10;
         }
-
-        printf("%f\n", *number);
 
         result.ok.value = number;
         result.ok.type = ON_DOUBLE;
@@ -337,6 +333,15 @@ json_result json_read_object(string *str) {
             return result;
         }
 
+        json_skip_spaces(str);
+
+        if(string_peek(str) == '}') {
+            string_next(str);
+            result.ok.value = o;
+            result.ok.type = ON_OBJECT;
+            return result;
+        }
+
         json_result key_res = json_read_key(str);
         if(key_res.err.type != OK) {
             on_free(o);
@@ -344,7 +349,6 @@ json_result json_read_object(string *str) {
         }
 
         char *key = key_res.ok.value;
-        printf("key: %s\n", key);
 
         json_skip_spaces(str);
         if(string_peek(str) != ':') {
@@ -362,9 +366,6 @@ json_result json_read_object(string *str) {
             on_free(o);
             return value_res;
         }
-
-        // printf("err type: %s\n", json_err_string(value_res.err.type));
-        printf("obj type: %s\n", on_type_string(value_res.ok.type));
 
         int status = on_add(o, key, value_res.ok.value, value_res.ok.type);
 
@@ -423,6 +424,13 @@ json_result json_read_array(string *str) {
 
         json_skip_spaces(str);
 
+        if(string_peek(str) == ']') {
+            string_next(str);
+            result.ok.value = o;
+            result.ok.type = ON_ARRAY;
+            return result;
+        }
+
         json_result value_res = json_read_value(str);
         if(value_res.err.type != OK) {
             on_free(o);
@@ -475,7 +483,7 @@ on* json_loads(char* s) {
     json_result result = json_read_inner(str);
 
     if(result.err.type == OK) o = result.ok.value;
-    else printf("err: %s, %c\n", json_err_string(result.err.type), s[result.err.index]);
+    else printf("err: %s, \"%c\", index: %d\n", json_err_string(result.err.type), s[result.err.index], result.err.index);
     string_free(str);
 
     return o;

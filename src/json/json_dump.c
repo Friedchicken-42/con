@@ -39,7 +39,6 @@ void json_dumps_array(on *o, string *str) {
     string_extend(str, "]");
 }
 
-
 void json_dumps_integer(string *str, int n) {
     int len = snprintf(NULL, 0, "%d", n);
     char *s = malloc(len + 1);
