@@ -48,9 +48,15 @@ void json_dumps_integer(string *str, int n) {
 }
 
 void json_dumps_double(string *str, double n) {
-    int len = snprintf(NULL, 0, "%f", n);
+    char *format = "";
+    int limit = 1000000;
+
+    if(n > limit || n < 1.0f/limit) format = "%e";
+    else format = "%lf";
+
+    int len = snprintf(NULL, 0, format, n);
     char *s = malloc(len + 1);
-    snprintf(s, len + 1, "%f", n);
+    snprintf(s, len + 1, format, n);
     string_extend(str, s);
     free(s);
 }

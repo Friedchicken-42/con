@@ -488,3 +488,23 @@ on* json_loads(char* s) {
 
     return o;
 }
+
+on* json_load(const char* filename) {
+    FILE *f = fopen(filename, "r");
+    if(f == NULL) return NULL;
+
+    fseek(f, 0, SEEK_END);
+    uint length = ftell (f);
+    fseek(f, 0, SEEK_SET);
+    char *buffer = xmalloc(length + 1);
+    fread(buffer, 1, length, f);
+    fclose(f);
+
+    buffer[length] = '\0';
+
+    on* o = json_loads(buffer);
+
+    free(buffer);
+
+    return o;
+}
