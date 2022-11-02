@@ -28,6 +28,7 @@ void on_print(on *o);
 on *on_create_object();
 on *on_create_array();
 int on_add(on *o, char *key, void *value, enum on_type type);
+void *on_get_on(on *o, void *key);
 void *on_get(on *o, void *key);
 
 const char* on_type_string(enum on_type type);

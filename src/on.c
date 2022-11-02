@@ -159,10 +159,17 @@ int on_add(on *o, char *key, void *value, enum on_type type) {
     return 0;
 }
 
-void *on_get(on *o, void *key) {
+void *on_get_on(on *o, void *key) {
     if(o->type == ON_OBJECT) return hashmap_get(o->data, key);
     if(o->type == ON_ARRAY)  return list_get(o->data, (size_t)key);
     return NULL;
+}
+
+void *on_get(on *o, void *key) {
+    on *value = on_get_on(o, key);
+    if(value == NULL) return NULL;
+
+    return value->data;
 }
 
 void on_print(on *o) {
