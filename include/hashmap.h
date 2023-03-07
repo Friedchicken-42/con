@@ -1,7 +1,7 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
-#include "../list/list.h"
+#include "list.h"
 
 typedef unsigned int uint;
 

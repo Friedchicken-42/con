@@ -1,7 +1,7 @@
-#include "../on.h"
-#include "../utils/string/string.h"
-#include "../utils/hashmap/hashmap.h"
-#include "json.h"
+#include <on.h>
+#include <string.h>
+#include <hashmap.h>
+#include <json.h>
 #include <stdio.h>
 
 void json_dumps_inner(on *o, string *str);

@@ -1,9 +1,9 @@
-#include "utils/alloc/alloc.h"
-#include "utils/list/list.h"
-#include "utils/hashmap/hashmap.h"
-#include "utils/string/string.h"
-#include "on.h"
-#include "json/json.h"
+#include <alloc.h>
+#include <list.h>
+#include <hashmap.h>
+#include <string.h>
+#include <on.h>
+#include <json.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>

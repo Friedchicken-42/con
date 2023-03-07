@@ -1,8 +1,8 @@
-#include "on.h"
-#include "utils/alloc/alloc.h"
-#include "utils/hashmap/hashmap.h"
-#include "utils/list/list.h"
-#include "utils/string/string.h"
+#include <on.h>
+#include <alloc.h>
+#include <hashmap.h>
+#include <list.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 

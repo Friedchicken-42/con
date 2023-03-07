@@ -1,7 +1,7 @@
-#include "../utils/string/string.h"
-#include "../utils/alloc/alloc.h"
-#include "../on.h"
-#include "json.h"
+#include <string.h>
+#include <alloc.h>
+#include <on.h>
+#include <json.h>
 #include <stdio.h>
 #include <stdlib.h>
 
