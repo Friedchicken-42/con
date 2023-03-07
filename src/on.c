@@ -71,7 +71,7 @@ void on_add_string(on *o, char* value) {
 }
 
 void on_add_integer(on *o, int value) {
-    int *x = malloc(sizeof(int));
+    int *x = xmalloc(sizeof(int));
     *x = value;
 
     o->type = ON_INTEGER;

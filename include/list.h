@@ -1,8 +1,6 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "stdlib.h"
-
 typedef unsigned int uint;
 
 typedef struct node_t {

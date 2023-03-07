@@ -3,7 +3,7 @@ SRCDIR := src
 INC :=-I include
 CFLAGS=-g -Wall
 
-all: lib/libon.a
+all: json
 
 .PHONY: con json dir clean
 

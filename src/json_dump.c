@@ -1,8 +1,10 @@
 #include <on.h>
+#include <alloc.h>
 #include <string.h>
 #include <hashmap.h>
 #include <json.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void json_dumps_inner(on *o, string *str);
 
@@ -41,7 +43,7 @@ void json_dumps_array(on *o, string *str) {
 
 void json_dumps_integer(string *str, int n) {
     int len = snprintf(NULL, 0, "%d", n);
-    char *s = malloc(len + 1);
+    char *s = xmalloc(len + 1);
     snprintf(s, len + 1, "%d", n);
     string_extend(str, s);
     free(s);
@@ -55,7 +57,7 @@ void json_dumps_double(string *str, double n) {
     else format = "%lf";
 
     int len = snprintf(NULL, 0, format, n);
-    char *s = malloc(len + 1);
+    char *s = xmalloc(len + 1);
     snprintf(s, len + 1, format, n);
     string_extend(str, s);
     free(s);
