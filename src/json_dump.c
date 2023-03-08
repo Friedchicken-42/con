@@ -30,12 +30,10 @@ void json_dumps_array(on *o, string *str) {
     string_extend(str, "[");
 
     list *l = (list*)o->data;
-    int i = 0;
     for(node *n = l->head; n != NULL; n = n->next) {
         json_dumps_inner((on*)n->data, str);
 
         if(n->next != NULL) string_extend(str, ", ");
-        i++;
     }
 
     string_extend(str, "]");
