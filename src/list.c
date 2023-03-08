@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
-#include "../alloc/alloc.h"
+#include <list.h>
+#include <alloc.h>
 
 list *list_create() {
     list *l = xmalloc(sizeof(list));

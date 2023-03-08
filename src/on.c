@@ -1,8 +1,8 @@
-#include "on.h"
-#include "utils/alloc/alloc.h"
-#include "utils/hashmap/hashmap.h"
-#include "utils/list/list.h"
-#include "utils/string/string.h"
+#include <on.h>
+#include <alloc.h>
+#include <hashmap.h>
+#include <list.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -71,7 +71,7 @@ void on_add_string(on *o, char* value) {
 }
 
 void on_add_integer(on *o, int value) {
-    int *x = malloc(sizeof(int));
+    int *x = xmalloc(sizeof(int));
     *x = value;
 
     o->type = ON_INTEGER;

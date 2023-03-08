@@ -1,8 +1,10 @@
-#include "../on.h"
-#include "../utils/string/string.h"
-#include "../utils/hashmap/hashmap.h"
-#include "json.h"
+#include <on.h>
+#include <alloc.h>
+#include <string.h>
+#include <hashmap.h>
+#include <json.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void json_dumps_inner(on *o, string *str);
 
@@ -28,12 +30,10 @@ void json_dumps_array(on *o, string *str) {
     string_extend(str, "[");
 
     list *l = (list*)o->data;
-    int i = 0;
     for(node *n = l->head; n != NULL; n = n->next) {
         json_dumps_inner((on*)n->data, str);
 
         if(n->next != NULL) string_extend(str, ", ");
-        i++;
     }
 
     string_extend(str, "]");
@@ -41,7 +41,7 @@ void json_dumps_array(on *o, string *str) {
 
 void json_dumps_integer(string *str, int n) {
     int len = snprintf(NULL, 0, "%d", n);
-    char *s = malloc(len + 1);
+    char *s = xmalloc(len + 1);
     snprintf(s, len + 1, "%d", n);
     string_extend(str, s);
     free(s);
@@ -55,7 +55,7 @@ void json_dumps_double(string *str, double n) {
     else format = "%lf";
 
     int len = snprintf(NULL, 0, format, n);
-    char *s = malloc(len + 1);
+    char *s = xmalloc(len + 1);
     snprintf(s, len + 1, format, n);
     string_extend(str, s);
     free(s);

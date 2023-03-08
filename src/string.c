@@ -1,10 +1,29 @@
-#include "string.h"
-#include "../alloc/alloc.h"
+#include <string.h>
+#include <alloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef unsigned int uint;
+
+unsigned long strlen(const char* str) {
+    uint len = 0;
+    while(str[len] != '\0') len++;
+    return len;
+}
+
+int strcmp(const char *a, const char *b) {
+    uint i = 0;
+    for(i = 0; a[i] != '\0' || b[i] != '\0'; i++) {
+        if(a[i] != b[i]) break;
+    }
+    return a[i] - b[i];
+}
+
+char *strcpy(char *dest, const char *src) {
+    uint len = strlen(src);
+    for(uint i = 0; i < len + 1; i++) dest[i] = src[i]; 
+    return dest;
+}
 
 void *string_dup(void *str) {
     char *x = (char*)str;
