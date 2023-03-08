@@ -39,11 +39,11 @@ build/hashmap.o: src/hashmap.c
 build/on.o: src/on.c
 	$(CC) $(CFLAGS) $(INC) -c -o build/on.o src/on.c
 
-build/json_load.o: src/json_load.c
-	$(CC) $(CFLAGS) $(INC) -c -o build/json_load.o src/json_load.c
+build/json_load.o: src/json/json_load.c
+	$(CC) $(CFLAGS) $(INC) -c -o build/json_load.o src/json/json_load.c
 
-build/json_dump.o: src/json_dump.c
-	$(CC) $(CFLAGS) $(INC) -c -o build/json_dump.o src/json_dump.c
+build/json_dump.o: src/json/json_dump.c
+	$(CC) $(CFLAGS) $(INC) -c -o build/json_dump.o src/json/json_dump.c
 
 clean:
 	rm -rf bin lib build
