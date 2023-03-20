@@ -5,7 +5,13 @@ CFLAGS=-g -Wall
 
 all: json
 
-.PHONY: con json dir clean
+.PHONY: con test json dir clean
+
+test: lib/libon.a json tests/test.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INC) -c -o build/test.o tests/test.c
+	$(CC) $(CFLAGS) $(INC) -o bin/test build/test.o lib/libon.a
+	bin/test
 
 con: lib/libon.a build/main.o json
 	mkdir -p bin
