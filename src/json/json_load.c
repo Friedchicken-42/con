@@ -12,6 +12,7 @@ enum json_err_type {
     EMPTY_KEY,
     MISSING_DIGIT,
     INTERNAL_ERROR,
+    TRAILING_COMMA,
 };
 
 const char* json_err_string(enum json_err_type err) {
@@ -22,6 +23,7 @@ const char* json_err_string(enum json_err_type err) {
         [EMPTY_KEY] = "Empty Key",
         [MISSING_DIGIT] = "Missing Digit",
         [INTERNAL_ERROR] = "Internal Error",
+        [TRAILING_COMMA] = "Trailing Comma",
     };
 
     return table[err];
@@ -180,6 +182,7 @@ json_result json_read_integer(string *str) {
         return result;
     }
 
+    char start = string_peek(str);
     int* number = xmalloc(sizeof(int));
     *number = 0;
     result.ok.value = number;
@@ -189,6 +192,13 @@ json_result json_read_integer(string *str) {
         string_next(str);
     }
     *number = (sign ? -1 : 1) * *number;
+
+    if(start == '0' && *number != 0) {
+        free(number);
+        result.err.type = WRONG_CHARACTER;
+        result.err.index = str->index;
+        return result;
+    }
 
     return result;
 }
@@ -231,6 +241,12 @@ json_result json_read_exponent(string *str) {
     }
 
     string_next(str);
+
+    if(!json_is_digit(string_peek(str))) {
+        result.err.type = UNEXPECTED_END;
+        result.err.index = str->index;
+        return result;
+    }
 
     while(json_is_digit(string_peek(str))) {
         *exponent = *exponent * 10 + string_peek(str) - '0';
@@ -386,6 +402,13 @@ json_result json_read_object(string *str) {
         if(string_peek(str) != ',') break;
         string_next(str);
         json_skip_spaces(str);
+
+        if(string_peek(str) == '}') {
+            on_free(o);
+            result.err.type = TRAILING_COMMA;
+            result.err.index = str->index;
+            return result;
+        }
     }
 
     if(string_peek(str) != '}') {
@@ -450,6 +473,13 @@ json_result json_read_array(string *str) {
         string_next(str);
         json_skip_spaces(str);
 
+
+        if(string_peek(str) == ']') {
+            on_free(o);
+            result.err.type = TRAILING_COMMA;
+            result.err.index = str->index;
+            return result;
+        }
     }
 
     if(string_peek(str) != ']') {
@@ -481,6 +511,11 @@ on* json_loads(char* s) {
     on *o = NULL;
     string* str = string_from(s);
     json_result result = json_read_inner(str);
+
+    if(str->index != str->length && string_peek(str) != '\n') {
+        result.err.type = UNEXPECTED_END;
+        result.err.index = str->index;
+    }
 
     if(result.err.type == OK) o = result.ok.value;
     else printf("err: %s, \"%c\", index: %d\n", json_err_string(result.err.type), s[result.err.index], result.err.index);
