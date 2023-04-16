@@ -57,6 +57,7 @@ hashmap *hashmap_create_str(uint size) {
 
     h->keys->func_free = free;
     h->keys->func_dup = string_dup;
+    h->keys->func_cmp = hashmap_cmp_str;
 
     return h;
 }
@@ -104,7 +105,7 @@ entry *hashmap_get_entry(hashmap *h, void *key) {
     entry *curr = h->entries[hash];
 
     while(curr != NULL) {
-        if(!h->func_cmp(key, curr->key)) return curr;
+        if(h->func_cmp(key, curr->key) == 0) return curr;
         curr = curr->next;
     }
 
@@ -124,12 +125,15 @@ void hashmap_free_entry(hashmap *h, entry *e) {
 }
 
 int hashmap_remove(hashmap *h, void *key) {
-    entry *curr = hashmap_get(h, key);
+    int hash = h->func_hash(key) % h->size;
+    entry *curr = hashmap_get_entry(h, key);
     if(curr == NULL) return 1;
 
     if(curr->prev) curr->prev->next = curr->next;
     if(curr->next) curr->next->prev = curr->prev;
+    if(curr == h->entries[hash]) h->entries[hash] = NULL;
 
+    list_remove(h->keys, key);
     hashmap_free_entry(h, curr);
 
     return 0;

@@ -1,3 +1,4 @@
+#include "list.h"
 #include <on.h>
 #include <alloc.h>
 #include <string.h>
@@ -13,14 +14,15 @@ void json_dumps_object(on *o, string *str) {
 
     hashmap *map = (hashmap*)o->data;
     list *keys = map->keys;
-    for(node *k = keys->head; k != NULL; k = k->next) {
+    for(uint i = 0; i < keys->length; i++) {
+        char *key = list_get(keys, i);
         string_extend(str, "\"");
-        string_extend(str, (char*)k->data);
+        string_extend(str, key);
         string_extend(str, "\"");
         string_extend(str, ": ");
-        json_dumps_inner((on*)(hashmap_get(map, k->data)), str);
+        json_dumps_inner((on*)(hashmap_get(map, key)), str);
 
-        if(k->next != NULL) string_extend(str, ", ");
+        if(i != keys->length - 1) string_extend(str, ", ");
     }
 
     string_extend(str, "}");
@@ -30,10 +32,10 @@ void json_dumps_array(on *o, string *str) {
     string_extend(str, "[");
 
     list *l = (list*)o->data;
-    for(node *n = l->head; n != NULL; n = n->next) {
-        json_dumps_inner((on*)n->data, str);
+    for(uint i = 0; i < l->length; i++) {
+        json_dumps_inner((on*)list_get(l, i), str);
 
-        if(n->next != NULL) string_extend(str, ", ");
+        if(i != l->length - 1) string_extend(str, ", ");
     }
 
     string_extend(str, "]");

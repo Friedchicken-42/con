@@ -6,88 +6,72 @@
 list *list_create() {
     list *l = xmalloc(sizeof(list));
 
-    l->head = NULL;
-    l->tail = NULL;
-    l->length = 0;
-    l->func_cmp = NULL;
     l->func_dup = NULL;
     l->func_free = NULL;
+    l->func_cmp = NULL;
 
+    l->length = 0;
+    l->size = 16;
+    l->data = xmalloc(sizeof(void*) * l->size);
+    
     return l;
 }
 
-node *node_create(void *v) {
-    node *n = xmalloc(sizeof(node));
-    n->data = v;
-    n->prev = NULL;
-    n->next = NULL;
-
-    return n;
-}
-
 void list_push(list *l, void *v) {
-    node *n = NULL;
+    void *n = v;
+    if(l->func_dup) n = l->func_dup(v);
 
-    if(l->func_dup) n = node_create(l->func_dup(v));
-    else n = node_create(v);
-
-    if(l->tail == NULL) {
-        l->tail = l->head = n;
-    } else {
-        l->tail->next = n;
-        n->prev = l->tail;
-        l->tail = n;
+    if(l->length == l->size - 1) {
+        l->size *= 2;
+        l->data = realloc(l->data, l->size);
     }
+    printf("%d ~ %d\n", l->length, l->size);
+    l->data[l->length] = n;
 
     l->length++;
 }
 
-node *list_pop(list *l) {
+void *list_pop(list *l) {
     if(l->length == 0) return NULL;
-    node *n = l->tail;
     l->length--;
+    return l->data[l->length];
+}
 
-    if(l->tail == l->head) {
-        l->head = NULL;
-        l->tail = NULL;
-    } else {
-        l->tail->prev->next = NULL;
-        n->prev = NULL;
+int list_remove(list *l, void *v) {
+    if(l->length == 0) return -1;
+    if(l->func_cmp == NULL) return -2;
+
+    uint i = 0;
+    for(i = 0; i < l->length; i++) {
+        if(!l->func_cmp(v, l->data[i])) break;
     }
 
-    return n;
+    if(l->func_free) l->func_free(l->data[i]);
+    for(i = i + 1; i < l->length; i++) {
+        l->data[i - 1] = l->data[i];
+    }
+    l->length--;
+
+    return 0;
 }
 
 void *list_get(list *l, int index) {
     if (index >= l->length) return NULL;
-    node *n = l->head;
-
-    for(uint i = 0; i < l->length; i++) {
-        if (i == index) {
-            return n;
-        }
-        n = n->next;
-    }
-    return NULL;
+    return l->data[index];
 }
 
 void list_free(void *l) {
     list *li = (list*)l;
-    node *curr = li->head;
-    while(curr != NULL) {
-        node *next = curr->next;
-        if(li->func_free) li->func_free(curr->data);
-        free(curr);
-        curr = next;
+    if(li->func_free) {
+        for(uint i = 0; i < li->length; i++) li->func_free(li->data[i]);
     }
+    free(li->data);
     free(l);
 }
 
 void list_print(list *l) {
-    printf("%16p << %d >> %16p\n", l->head, l->length, l->tail);
-    node *curr = l->head;
-    while(curr != NULL) {
-        printf("%16p <- %16p -> %16p\n", curr->prev, curr->data, curr->next);
-        curr = curr->next;
+    printf("%16p:  %d ~ %d\n", l->data, l->length, l->size);
+    for(uint i = 0; i < l->length; i++) {
+        printf("    %16p\n", l->data[i]);
     }
 }

@@ -199,20 +199,19 @@ void on_print(on *o) {
             printf("{\n");
             hashmap *map = (hashmap*)o->data;
             list *keys = map->keys;
-            for(node *k = keys->head; k != NULL; k = k->next) {
-                printf("key: %s\n", (char*)k->data);
-                on_print((on*)(hashmap_get(map, k->data)));
+            for(uint i = 0; i < keys->length; i++) {
+                char *key = (char*)list_get(keys, i);
+                printf("key: %s\n", key);
+                on_print((on*)(hashmap_get(map, key)));
             }
             printf("}\n");
             break;
         case ON_ARRAY:
             printf("[\n");
             list *l = (list*)o->data;
-            int i = 0;
-            for(node *n = l->head; n != NULL; n = n->next) {
+            for(uint i = 0; i < l->length; i++) {
                 printf("index: %d\n", i);
-                on_print((on*)n->data);
-                i++;
+                on_print((on*)list_get(l, i));
             }
 
             printf("]\n");
