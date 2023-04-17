@@ -23,9 +23,8 @@ void list_push(list *l, void *v) {
 
     if(l->length == l->size - 1) {
         l->size *= 2;
-        l->data = realloc(l->data, l->size);
+        l->data = realloc(l->data, sizeof(void *) * l->size);
     }
-    printf("%d ~ %d\n", l->length, l->size);
     l->data[l->length] = n;
 
     l->length++;
