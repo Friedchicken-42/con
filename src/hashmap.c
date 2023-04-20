@@ -76,9 +76,11 @@ int hashmap_contains(hashmap *h, void *key) {
 int hashmap_set(hashmap *h, void *key, void *value) {
     int hash = h->func_hash(key) % h->size;
     entry *node = h->entries[hash];
+    entry *e;
 
     if(node == NULL) {
         h->entries[hash] = entry_create(key, value, h->func_dup);
+        e = h->entries[hash];
     } else {
         entry *curr = node;
         entry *prev = NULL;
@@ -92,9 +94,10 @@ int hashmap_set(hashmap *h, void *key, void *value) {
         }
 
         prev->next = entry_create(key, value, h->func_dup);
+        e = prev->next;
     }
 
-    list_push(h->keys, key);
+    list_push(h->keys, e->key);
     return 0;
 }
 
