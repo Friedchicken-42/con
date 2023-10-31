@@ -3,10 +3,17 @@
 
 #include <on.h>
 
-char *json_dumps(on *o);
-int json_dump(on *o, const char* filename);
+// will remove this
+typedef struct json_err_t {
+    char errno;
+    int index;
+    const char *msg;
+} json_err;
 
-on* json_loads(char* s);
-on* json_load(const char* filename);
+char *json_dumps(on *o);
+int json_dump(on *o, const char *filename);
+
+json_err *json_loads(char *s, on **output);
+json_err *json_load(const char *filename, on **output);
 
 #endif // !JSON_H

@@ -1,9 +1,9 @@
-#include <string.h>
 #include <alloc.h>
-#include <on.h>
 #include <json.h>
+#include <on.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 enum json_err_type {
     OK = 0,
@@ -15,8 +15,8 @@ enum json_err_type {
     TRAILING_COMMA,
 };
 
-const char* json_err_string(enum json_err_type err) {
-    const char* table[] = {
+const char *json_err_string(enum json_err_type err) {
+    const char *table[] = {
         [OK] = "Ok",
         [WRONG_CHARACTER] = "Wrong Character",
         [UNEXPECTED_END] = "Unexpected End",
@@ -29,59 +29,40 @@ const char* json_err_string(enum json_err_type err) {
     return table[err];
 }
 
-typedef struct json_result_t {
-    struct ok_t {
-        void *value;
-        enum on_type type;
-    } ok;
-    struct err_t {
-        uint index;
-        enum json_err_type type;
-    } err;
-} json_result;
+json_err *json_err_new(char errno, int index, const char *msg) {
+    json_err *err = xmalloc(sizeof(json_err));
 
-json_result json_result_create() {
-    json_result result = {
-        .ok = {
-            .type = ON_EMPTY,
-            .value = NULL,
-        },
-        .err = {
-            .index = 0,
-            .type= OK,
-        },
-    };
-    return result;
+    err->errno = errno;
+    err->index = index;
+    if (msg == NULL) err->msg = json_err_string(errno);
+    else err->msg = msg;
+
+    return err;
 }
 
 void json_skip_spaces(string *str) {
-    while(1) {
+    while (1) {
         char c = string_peek(str);
-        if(c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
+        if (c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
         string_next(str);
     }
 }
 
-json_result json_read_string(string *str) {
-    json_result result = json_result_create();
-
-    if(string_peek(str) != '\"') {
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+json_err *json_read_simple_string(string *str, char **output) {
+    if (string_peek(str) != '\"') {
+        return json_err_new(WRONG_CHARACTER, str->index, "Expected \"");
     }
+
     string_next(str);
 
     string *key_str = string_create();
-    while(string_peek(str) != '\"') {
+    while (string_peek(str) != '\"') {
         char x = string_peek(str);
         string_next(str);
-        if(x == 0) {
+        if (x == 0) {
             string_free(key_str);
-            result.err.type = UNEXPECTED_END;
-            result.err.index = str->index;
-            return result;
-        } else if(x == '\\') {
+            return json_err_new(UNEXPECTED_END, str->index, NULL);
+        } else if (x == '\\') {
             string_push(key_str, x);
             x = string_peek(str);
             string_next(str);
@@ -95,441 +76,344 @@ json_result json_read_string(string *str) {
     char *key = string_str(key_str);
     string_free(key_str);
 
-    result.ok.value = key;
-    result.ok.type = ON_STRING;
-    return result;
+    *output = key;
+    return NULL;
 }
 
-json_result json_read_key(string *str) {
-    json_result result = json_read_string(str);
-    if(result.err.type != OK) return result;
+json_err *json_read_string(string *str, on *output) {
+    on_set(output, ON_STRING);
+    return json_read_simple_string(str, (char **)&(output->data));
+}
 
-    if(string_cmp(result.ok.value, "") == 0) {
-        result.err.type = EMPTY_KEY;
-        result.err.index = str->index;
-        free(result.ok.value);
-        result.ok.value = NULL;
+json_err *json_read_key(string *str, char **output) {
+    json_err *err = json_read_simple_string(str, output);
+    if (err != NULL) return err;
+
+    if (string_cmp(*output, "") == 0) {
+        // free(*output);
+        return json_err_new(EMPTY_KEY, str->index, NULL);
     }
 
-    return result;
+    return NULL;
 }
 
-json_result json_read_sequence(string *str, const char* sequence) {
-    json_result result = json_result_create();
-
-    for(uint i = 0; sequence[i] != '\0'; i++) {
-        if(string_peek(str) != sequence[i]) {
-            result.err.type = WRONG_CHARACTER;
-            result.err.index = str->index;
+json_err *json_read_sequence(string *str, const char *sequence) {
+    for (uint i = 0; sequence[i] != '\0'; i++) {
+        if (string_peek(str) != sequence[i]) {
+            return json_err_new(WRONG_CHARACTER, str->index, NULL);
         }
         string_next(str);
     }
 
-    return result;
+    return NULL;
 }
 
-json_result json_read_true(string *str) {
-    json_result result = json_read_sequence(str, "true");
-
-    if(result.err.type != OK) return result;
-
-    result.ok.type = ON_TRUE;
-    result.ok.value = NULL;
-
-    return result;
+json_err *json_read_true(string *str, on *output) {
+    on_set(output, ON_TRUE);
+    return json_read_sequence(str, "true");
 }
 
-json_result json_read_false(string *str) {
-    json_result result = json_read_sequence(str, "false");
-
-    if(result.err.type != OK) return result;
-
-    result.ok.type = ON_FALSE;
-    result.ok.value = NULL;
-
-    return result;
+json_err *json_read_false(string *str, on *output) {
+    on_set(output, ON_FALSE);
+    return json_read_sequence(str, "false");
 }
 
-json_result json_read_null(string *str) {
-    json_result result = json_read_sequence(str, "null");
-
-    if(result.err.type != OK) return result;
-
-    result.ok.type = ON_NULL;
-    result.ok.value = NULL;
-
-    return result;
+json_err *json_read_null(string *str, on *output) {
+    on_set(output, ON_NULL);
+    return json_read_sequence(str, "null");
 }
 
-int json_is_digit(char c) {
-    return c >= '0' && c <= '9';
-}
+int json_is_digit(char c) { return c >= '0' && c <= '9'; }
 
-json_result json_read_integer(string *str) {
-    json_result result = json_result_create();
+json_err *json_read_integer(string *str, int *number) {
     int sign = 0;
 
-    if(string_peek(str) == '-') {
+    if (string_peek(str) == '-') {
         sign = 1;
         string_next(str);
-    } else if(string_peek(str) == '+') {
+    } else if (string_peek(str) == '+') {
         string_next(str);
     }
 
-    if(!json_is_digit(string_peek(str))) {
-        result.err.type = MISSING_DIGIT;
-        result.err.index = str->index;
-        return result;
+    if (!json_is_digit(string_peek(str))) {
+        return json_err_new(MISSING_DIGIT, str->index, NULL);
     }
 
     char start = string_peek(str);
-    int* number = xmalloc(sizeof(int));
     *number = 0;
-    result.ok.value = number;
 
-    while(json_is_digit(string_peek(str))) {
+    while (json_is_digit(string_peek(str))) {
         *number = *number * 10 + string_peek(str) - '0';
         string_next(str);
     }
     *number = (sign ? -1 : 1) * *number;
 
-    if(start == '0' && *number != 0) {
-        free(number);
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+    if (start == '0' && *number != 0) {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
 
-    return result;
+    return NULL;
 }
 
-json_result json_read_fraction(string *str) {
-    json_result result = json_result_create();
-
-    int *fraction = xmalloc(sizeof(int));
+json_err *json_read_fraction(string *str, int *fraction) {
     *fraction = 0;
-    result.ok.value = fraction;
 
-    if(string_peek(str) != '.') return result;
+    if (string_peek(str) != '.') return NULL;
     string_next(str);
 
-    while(json_is_digit(string_peek(str))) {
+    while (json_is_digit(string_peek(str))) {
         *fraction = *fraction * 10 + string_peek(str) - '0';
         string_next(str);
     }
 
-    return result;
+    return NULL;
 }
 
-json_result json_read_exponent(string *str) {
-    json_result result = json_result_create();
+json_err *json_read_exponent(string *str, int *exponent) {
     int sign = 0;
-
-    int *exponent = xmalloc(sizeof(int));
     *exponent = 0;
-    result.ok.value = exponent;
 
-    if(string_peek(str) != 'e' && string_peek(str) != 'E') return result;
+    if (string_peek(str) != 'e' && string_peek(str) != 'E') return NULL;
     string_next(str);
 
-    if(string_peek(str) == '-') sign = 1;
-    else if(string_peek(str) == '+') sign = 0;
-    else if(!json_is_digit(string_peek(str))) {
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+    if (string_peek(str) == '-') sign = 1;
+    else if (string_peek(str) == '+') sign = 0;
+    else if (!json_is_digit(string_peek(str))) {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
 
     string_next(str);
 
-    if(!json_is_digit(string_peek(str))) {
-        result.err.type = UNEXPECTED_END;
-        result.err.index = str->index;
-        return result;
+    if (!json_is_digit(string_peek(str))) {
+        return json_err_new(UNEXPECTED_END, str->index, NULL);
     }
 
-    while(json_is_digit(string_peek(str))) {
+    while (json_is_digit(string_peek(str))) {
         *exponent = *exponent * 10 + string_peek(str) - '0';
         string_next(str);
     }
 
     *exponent = (sign ? -1 : 1) * *exponent;
 
-    return result;
+    return NULL;
 }
 
-json_result json_read_number(string *str) {
-    json_result result = json_result_create();
+json_err *json_read_number(string *str, on *output) {
+    int num;
+    int fra;
+    int exp;
 
-    json_result int_res = json_read_integer(str);
-    json_result fra_res = json_read_fraction(str);
-    json_result exp_res = json_read_exponent(str);
+    json_err *err;
+    err = json_read_integer(str, &num);
+    if (err != NULL) return err;
 
-    if(int_res.err.type != OK) return int_res;
-    if(fra_res.err.type != OK) return fra_res;
-    if(exp_res.err.type != OK) return exp_res;
+    err = json_read_fraction(str, &fra);
+    if (err != NULL) return err;
 
-    int num = *(int*)(int_res.ok.value);
-    int fra = *(int*)(fra_res.ok.value);
-    int exp = *(int*)(exp_res.ok.value);
+    err = json_read_exponent(str, &exp);
+    if (err != NULL) return err;
 
     double fraction = fra;
-    while(fraction > 1) {
+    while (fraction > 1) {
         fraction /= 10;
     }
 
-    if(fra == 0 && exp == 0) {
+    if (fra == 0 && exp == 0) {
+        on_set(output, ON_INTEGER);
         int *number = xmalloc(sizeof(int));
         *number = num;
-        result.ok.value = number;
-        result.ok.type = ON_INTEGER;
+        output->data = number;
     } else {
+        on_set(output, ON_DOUBLE);
         double *number = xmalloc(sizeof(double));
         *number = num + fraction;
         int exp_abs = exp >= 0 ? exp : -exp;
-        for(uint i = 0; i < exp_abs; i++) {
-            if(exp > 0) *number = *number * 10;
+        for (uint i = 0; i < exp_abs; i++) {
+            if (exp > 0) *number = *number * 10;
             else *number = *number / 10;
         }
 
-        result.ok.value = number;
-        result.ok.type = ON_DOUBLE;
+        output->data = number;
     }
 
-    free(int_res.ok.value);
-    free(fra_res.ok.value);
-    free(exp_res.ok.value);
-
-    return result;
+    return NULL;
 }
 
-json_result json_read_inner(string *str);
+json_err *json_read_inner(string *str, on *output);
 
-json_result json_read_value(string *str) {
-    json_result result = json_result_create();
-
-    switch(string_peek(str)) {
-        case '"':
-            return json_read_string(str);
-        case 't':
-            return json_read_true(str);
-        case 'f':
-            return json_read_false(str);
-        case 'n':
-            return json_read_null(str);
-        case '{':
-        case '[':
-            return json_read_inner(str);
-        default:
-            return json_read_number(str);
+json_err *json_read_value(string *str, on *output) {
+    switch (string_peek(str)) {
+    case '"':
+        return json_read_string(str, output);
+    case 't':
+        return json_read_true(str, output);
+    case 'f':
+        return json_read_false(str, output);
+    case 'n':
+        return json_read_null(str, output);
+    case '{':
+    case '[':
+        return json_read_inner(str, output);
+    default:
+        return json_read_number(str, output);
     }
 
-    result.err.type = UNEXPECTED_END;
-    result.err.index = str->index;
-
-    return result;
+    return json_err_new(UNEXPECTED_END, str->index, NULL);
 }
 
-json_result json_read_object(string *str) {
-    json_result result = json_result_create();
-    if(string_peek(str) != '{') {
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+json_err *json_read_object(string *str, on *output) {
+    if (string_peek(str) != '{') {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
 
-    on *o = on_create_object();
     string_next(str);
 
-    while(1) {
-        if(string_peek(str) == 0) {
-            on_free(o);
-            result.err.type = WRONG_CHARACTER;
-            result.err.index = str->index;
-            return result;
+    on_set(output, ON_OBJECT);
+
+    while (1) {
+        if (string_peek(str) == 0) {
+            return json_err_new(WRONG_CHARACTER, str->index, NULL);
         }
 
         json_skip_spaces(str);
 
-        if(string_peek(str) == '}') {
+        if (string_peek(str) == '}') {
             string_next(str);
-            result.ok.value = o;
-            result.ok.type = ON_OBJECT;
-            return result;
+            return NULL;
         }
 
-        json_result key_res = json_read_key(str);
-        if(key_res.err.type != OK) {
-            on_free(o);
-            return key_res;
-        }
+        char *key = NULL;
+        json_err *err = NULL;
 
-        char *key = key_res.ok.value;
-
-        json_skip_spaces(str);
-        if(string_peek(str) != ':') {
-            on_free(o);
-            result.err.type = WRONG_CHARACTER;
-            result.err.index = str->index;
-            return result;
-        }
-        string_next(str);
+        err = json_read_key(str, &key);
+        if (err != NULL) return err;
         json_skip_spaces(str);
 
-        json_result value_res = json_read_value(str);
-        if(value_res.err.type != OK) {
+        if (string_peek(str) != ':') {
             free(key);
-            on_free(o);
-            return value_res;
+            return json_err_new(WRONG_CHARACTER, str->index, "Expected ':'");
         }
 
-        int status = on_add(o, key, value_res.ok.value, value_res.ok.type);
+        string_next(str);
+        json_skip_spaces(str);
 
+        on *value = on_create();
+        err = json_read_value(str, value);
+
+        if (err != NULL) {
+            free(key);
+            free(value);
+            return err;
+        }
+
+        int status = on_add_value(output, key, value);
+
+        // mabye remove string dups from hashmap
         free(key);
-        if (value_res.ok.value != NULL) {
-            if(value_res.ok.type != ON_ARRAY && value_res.ok.type != ON_OBJECT) {
-                free(value_res.ok.value);
-            }
-        }
-
-        if(status != 0) {
-            result.err.type = INTERNAL_ERROR;
-            result.err.index = str->index;
-            return result;
-        }
+        if (status != 0) return json_err_new(INTERNAL_ERROR, str->index, NULL);
 
         json_skip_spaces(str);
-        if(string_peek(str) != ',') break;
+        if (string_peek(str) != ',') break;
         string_next(str);
         json_skip_spaces(str);
 
-        if(string_peek(str) == '}') {
-            on_free(o);
-            result.err.type = TRAILING_COMMA;
-            result.err.index = str->index;
-            return result;
+        if (string_peek(str) == '}') {
+            return json_err_new(TRAILING_COMMA, str->index, NULL);
         }
     }
 
-    if(string_peek(str) != '}') {
-        on_free(o);
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+    if (string_peek(str) != '}') {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
 
     string_next(str);
 
-    result.ok.value = o;
-    result.ok.type = ON_OBJECT;
-    return result;
+    return NULL;
 }
 
-json_result json_read_array(string *str) {
-    json_result result = json_result_create();
-
-    if(string_peek(str) != '[') {
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+json_err *json_read_array(string *str, on *output) {
+    if (string_peek(str) != '[') {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
 
     string_next(str);
-    on *o = on_create_array();
 
-    while(1) {
-        if(string_peek(str) == 0) {
-            on_free(o);
-            result.err.type = UNEXPECTED_END;
-            result.err.index = str->index;
-            return result;
+    on_set(output, ON_ARRAY);
+
+    while (1) {
+        if (string_peek(str) == 0) {
+            return json_err_new(UNEXPECTED_END, str->index, NULL);
         }
 
         json_skip_spaces(str);
 
-        if(string_peek(str) == ']') {
+        if (string_peek(str) == ']') {
             string_next(str);
-            result.ok.value = o;
-            result.ok.type = ON_ARRAY;
-            return result;
+            return NULL;
         }
 
-        json_result value_res = json_read_value(str);
-        if(value_res.err.type != OK) {
-            on_free(o);
-            return value_res;
+        on *value = on_create();
+        json_err *err = json_read_value(str, value);
+        if (err != NULL) {
+            on_free(value);
+            return err;
         }
 
-        on_add(o, NULL, value_res.ok.value, value_res.ok.type);
-
-        if(value_res.ok.value != NULL) {
-            if(value_res.ok.type != ON_OBJECT && value_res.ok.type != ON_ARRAY) {
-                free(value_res.ok.value);
-            }
-        }
+        int status = on_add_value(output, NULL, value);
+        if (status != 0) return json_err_new(INTERNAL_ERROR, str->index, NULL);
 
         json_skip_spaces(str);
-        if(string_peek(str) != ',') break;
+        if (string_peek(str) != ',') break;
         string_next(str);
         json_skip_spaces(str);
 
-
-        if(string_peek(str) == ']') {
-            on_free(o);
-            result.err.type = TRAILING_COMMA;
-            result.err.index = str->index;
-            return result;
+        if (string_peek(str) == ']') {
+            return json_err_new(TRAILING_COMMA, str->index, NULL);
         }
     }
 
-    if(string_peek(str) != ']') {
-        on_free(o);
-        result.err.type = WRONG_CHARACTER;
-        result.err.index = str->index;
-        return result;
+    if (string_peek(str) != ']') {
+        return json_err_new(WRONG_CHARACTER, str->index, NULL);
     }
-
 
     string_next(str);
 
-    result.ok.value = o;
-    result.ok.type = ON_ARRAY;
-    return result;
+    return NULL;
 }
 
-json_result json_read_inner(string *str) {
-    if(string_peek(str) == '{') return json_read_object(str);
-    if(string_peek(str) == '[') return json_read_array(str);
+json_err *json_read_inner(string *str, on *output) {
+    if (string_peek(str) == '{') return json_read_object(str, output);
+    if (string_peek(str) == '[') return json_read_array(str, output);
 
-    json_result result = json_result_create();
-    result.err.type = WRONG_CHARACTER;
-    result.err.index = str->index;
-    return result;
+    return json_err_new(WRONG_CHARACTER, str->index, "Expected '{' or '['");
 }
 
-on* json_loads(char* s) {
-    on *o = NULL;
-    string* str = string_from(s);
-    json_result result = json_read_inner(str);
+json_err *json_loads(char *s, on **output) {
+    *output = on_create();
 
-    if(str->index != str->length && string_peek(str) != '\n') {
-        result.err.type = UNEXPECTED_END;
-        result.err.index = str->index;
+    string *str = string_from(s);
+    json_err *err = json_read_inner(str, *output);
+    if (err != NULL) {
+        string_free(str);
+        on_free(*output);
+        return err;
     }
 
-    if(result.err.type == OK) o = result.ok.value;
-    else printf("err: %s, \"%c\", index: %d\n", json_err_string(result.err.type), s[result.err.index], result.err.index);
+    if (str->index != str->length && string_peek(str) != '\n') {
+        return json_err_new(UNEXPECTED_END, str->index, NULL);
+    }
+
     string_free(str);
 
-    return o;
+    return NULL;
 }
 
-on* json_load(const char* filename) {
+json_err *json_load(const char *filename, on **output) {
     FILE *f = fopen(filename, "r");
-    if(f == NULL) return NULL;
+    if (f == NULL) return NULL;
 
     fseek(f, 0, SEEK_END);
-    uint length = ftell (f);
+    uint length = ftell(f);
     fseek(f, 0, SEEK_SET);
     char *buffer = xmalloc(length + 1);
     fread(buffer, 1, length, f);
@@ -537,9 +421,9 @@ on* json_load(const char* filename) {
 
     buffer[length] = '\0';
 
-    on* o = json_loads(buffer);
+    json_err *err = json_loads(buffer, output);
 
     free(buffer);
 
-    return o;
+    return err;
 }
