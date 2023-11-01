@@ -111,7 +111,10 @@ int json_dump(on *o, const char *filename) {
     if (f == NULL) return -1;
 
     char *string = json_dumps(o);
-    if (string == NULL) return -1;
+    if (string == NULL) {
+        fclose(f);
+        return -1;
+    }
 
     fputs(string, f);
     free(string);

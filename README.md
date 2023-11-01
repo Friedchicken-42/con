@@ -16,7 +16,7 @@ C Object Notation. C support for JSON
 
 ```c
 on *o = NULL;
-json_err* err = json_load("file.json");
+json_err* err = json_load("file.json", &o);
 json_dump(obj, "file.json");
 ```
 
