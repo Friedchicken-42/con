@@ -8,72 +8,16 @@
 
 on *on_create() {
     on *o = xmalloc(sizeof(on));
-
     o->data = NULL;
     o->type = ON_EMPTY;
     o->func_free = NULL;
-
     return o;
 }
 
-on *on_create_object() {
-    on *obj = on_create();
-    obj->type = ON_OBJECT;
-    obj->func_free = hashmap_free;
-
-    hashmap *map = hashmap_create_str(5);
-    map->func_free_value = on_free;
-
-    obj->data = map;
-
-    return obj;
-}
-
-on *on_create_array() {
-    on *arr = on_create();
-    arr->type = ON_ARRAY;
-    arr->func_free = list_free;
-
-    list *l = list_create();
-    l->func_free = on_free;
-
-    arr->data = l;
-
-    return arr;
-}
-
-void on_free(void *o) {
-    on *obj = (on *)o;
-    if (obj->func_free) obj->func_free(obj->data);
-    free(obj);
-}
-
-const char *on_type_string(enum on_type type) {
-    const char *table[9] = {
-        [ON_EMPTY] = "Empty",   [ON_NULL] = "Null",
-        [ON_STRING] = "String", [ON_INTEGER] = "Integer",
-        [ON_DOUBLE] = "Double", [ON_TRUE] = "True",
-        [ON_FALSE] = "False",   [ON_OBJECT] = "Object",
-        [ON_ARRAY] = "Array",
-    };
-
-    return table[type];
-}
-
-void on_add_string(on *o, char *value) {
+void on_set_string(on *o, char *value) {
     o->type = ON_STRING;
-    o->data = string_dup(value);
+    if (value != NULL) o->data = string_dup(value);
     o->func_free = free;
-}
-
-void on_add_integer(on *o, int value) {
-    o->type = ON_INTEGER;
-    o->number = value;
-}
-
-void on_add_double(on *o, double value) {
-    o->type = ON_DOUBLE;
-    o->number = value;
 }
 
 void on_set_object(on *o) {
@@ -96,8 +40,15 @@ void on_set_array(on *o) {
     o->data = l;
 }
 
-void on_set(on *o, enum on_type type) {
+void on_clear(on *o) {
     if (o->func_free) o->func_free(o->data);
+    o->data = NULL;
+    o->type = ON_EMPTY;
+    o->func_free = NULL;
+}
+
+void on_set(on *o, void *value, enum on_type type) {
+    on_clear(o);
     o->type = type;
 
     switch (type) {
@@ -105,12 +56,15 @@ void on_set(on *o, enum on_type type) {
     case ON_NULL:
     case ON_TRUE:
     case ON_FALSE:
-    case ON_INTEGER:
-    case ON_DOUBLE:
         break;
-
+    case ON_INTEGER:
+        o->number = *(int *)value;
+        break;
+    case ON_DOUBLE:
+        o->number = *(double *)value;
+        break;
     case ON_STRING:
-        o->func_free = free;
+        on_set_string(o, (char *)value);
         break;
     case ON_OBJECT:
         on_set_object(o);
@@ -119,46 +73,17 @@ void on_set(on *o, enum on_type type) {
         on_set_array(o);
         break;
     }
-    // TODO: return err
 }
 
-on *on_create_type(void *value, enum on_type type) {
-    on *o = NULL;
+on *on_create_object() {
+    on *o = on_create();
+    on_set(o, NULL, ON_OBJECT);
+    return o;
+}
 
-    if (type != ON_OBJECT && type != ON_ARRAY) o = on_create();
-
-    switch (type) {
-    case ON_EMPTY:
-    case ON_NULL:
-        o->type = ON_NULL;
-        break;
-    case ON_STRING:
-        on_add_string(o, (char *)value);
-        break;
-    case ON_INTEGER:
-        on_add_integer(o, *(int *)value);
-        break;
-    case ON_DOUBLE:
-        on_add_double(o, *(double *)value);
-        break;
-    case ON_TRUE:
-        o->type = ON_TRUE;
-        break;
-    case ON_FALSE:
-        o->type = ON_FALSE;
-        break;
-    case ON_OBJECT:
-        if (value != NULL) o = value;
-        else o = on_create_object();
-        o->type = ON_OBJECT;
-        break;
-    case ON_ARRAY:
-        if (value != NULL) o = value;
-        else o = on_create_array();
-        o->type = ON_ARRAY;
-        break;
-    }
-
+on *on_create_array() {
+    on *o = on_create();
+    on_set(o, NULL, ON_ARRAY);
     return o;
 }
 
@@ -190,9 +115,15 @@ int on_add_value(on *o, char *key, on *value) {
 }
 
 int on_add(on *o, char *key, void *value, enum on_type type) {
-    on *obj = on_create_type(value, type);
+    on *obj = value;
+    if (type != ON_OBJECT && type != ON_ARRAY) {
+        obj = on_create();
+        on_set(obj, value, type);
+    }
+
     int status = on_add_value(o, key, obj);
     if (status != 0) on_free(obj);
+
     return status;
 }
 
@@ -206,7 +137,23 @@ void *on_get(on *o, void *key) {
     on *value = on_get_on(o, key);
     if (value == NULL) return NULL;
 
-    return value->data;
+    if (o->type == ON_INTEGER || o->type == ON_DOUBLE) {
+        return &o->number;
+    } else {
+        return value->data;
+    }
+}
+
+const char *on_type_string(enum on_type type) {
+    const char *table[9] = {
+        [ON_EMPTY] = "Empty",   [ON_NULL] = "Null",
+        [ON_STRING] = "String", [ON_INTEGER] = "Integer",
+        [ON_DOUBLE] = "Double", [ON_TRUE] = "True",
+        [ON_FALSE] = "False",   [ON_OBJECT] = "Object",
+        [ON_ARRAY] = "Array",
+    };
+
+    return table[type];
 }
 
 void on_print_(on *o, int tabs) {
@@ -215,8 +162,10 @@ void on_print_(on *o, int tabs) {
 
     printf("type: %s\n", on_type_string(o->type));
 
-    for (int i = 0; i < tabs; i++)
-        printf("\t");
+    if (o->type != ON_EMPTY) {
+        for (int i = 0; i < tabs; i++)
+            printf("\t");
+    }
 
     switch (o->type) {
     case ON_EMPTY:
@@ -280,3 +229,9 @@ void on_print_(on *o, int tabs) {
 }
 
 void on_print(on *o) { on_print_(o, 0); }
+
+void on_free(void *o) {
+    on *obj = (on *)o;
+    if (obj->func_free) obj->func_free(obj->data);
+    free(obj);
+}

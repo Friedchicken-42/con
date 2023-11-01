@@ -32,7 +32,7 @@ on *on_create_object();
 on *on_create_array();
 int on_add(on *o, char *key, void *value, enum on_type type);
 int on_add_value(on *o, char *key, on *value);
-void on_set(on *o, enum on_type type);
+void on_set(on *o, void *value, enum on_type type);
 void *on_get_on(on *o, void *key);
 void *on_get(on *o, void *key);
 

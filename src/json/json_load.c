@@ -81,7 +81,7 @@ json_err *json_read_simple_string(string *str, char **output) {
 }
 
 json_err *json_read_string(string *str, on *output) {
-    on_set(output, ON_STRING);
+    on_set(output, NULL, ON_STRING);
     return json_read_simple_string(str, (char **)&(output->data));
 }
 
@@ -108,17 +108,17 @@ json_err *json_read_sequence(string *str, const char *sequence) {
 }
 
 json_err *json_read_true(string *str, on *output) {
-    on_set(output, ON_TRUE);
+    on_set(output, NULL, ON_TRUE);
     return json_read_sequence(str, "true");
 }
 
 json_err *json_read_false(string *str, on *output) {
-    on_set(output, ON_FALSE);
+    on_set(output, NULL, ON_FALSE);
     return json_read_sequence(str, "false");
 }
 
 json_err *json_read_null(string *str, on *output) {
-    on_set(output, ON_NULL);
+    on_set(output, NULL, ON_NULL);
     return json_read_sequence(str, "null");
 }
 
@@ -218,10 +218,8 @@ json_err *json_read_number(string *str, on *output) {
     }
 
     if (fra == 0 && exp == 0) {
-        on_set(output, ON_INTEGER);
-        output->number = num;
+        on_set(output, &num, ON_INTEGER);
     } else {
-        on_set(output, ON_DOUBLE);
 
         double number = num + fraction;
         int exp_abs = exp >= 0 ? exp : -exp;
@@ -229,8 +227,7 @@ json_err *json_read_number(string *str, on *output) {
             if (exp > 0) number = number * 10;
             else number = number / 10;
         }
-
-        output->number = number;
+        on_set(output, &number, ON_DOUBLE);
     }
 
     return NULL;
@@ -265,7 +262,7 @@ json_err *json_read_object(string *str, on *output) {
 
     string_next(str);
 
-    on_set(output, ON_OBJECT);
+    on_set(output, NULL, ON_OBJECT);
 
     while (1) {
         if (string_peek(str) == 0) {
@@ -335,7 +332,7 @@ json_err *json_read_array(string *str, on *output) {
 
     string_next(str);
 
-    on_set(output, ON_ARRAY);
+    on_set(output, NULL, ON_ARRAY);
 
     while (1) {
         if (string_peek(str) == 0) {
