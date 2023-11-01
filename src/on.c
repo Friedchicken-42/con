@@ -11,7 +11,7 @@ on *on_create() {
 
     o->data = NULL;
     o->type = ON_EMPTY;
-    o->func_free = free;
+    o->func_free = NULL;
 
     return o;
 }
@@ -67,21 +67,13 @@ void on_add_string(on *o, char *value) {
 }
 
 void on_add_integer(on *o, int value) {
-    int *x = xmalloc(sizeof(int));
-    *x = value;
-
     o->type = ON_INTEGER;
-    o->data = x;
-    o->func_free = free;
+    o->number = value;
 }
 
 void on_add_double(on *o, double value) {
-    double *x = malloc(sizeof(double));
-    *x = value;
-
     o->type = ON_DOUBLE;
-    o->data = x;
-    o->func_free = free;
+    o->number = value;
 }
 
 void on_set_object(on *o) {
@@ -113,11 +105,11 @@ void on_set(on *o, enum on_type type) {
     case ON_NULL:
     case ON_TRUE:
     case ON_FALSE:
+    case ON_INTEGER:
+    case ON_DOUBLE:
         break;
 
     case ON_STRING:
-    case ON_INTEGER:
-    case ON_DOUBLE:
         o->func_free = free;
         break;
     case ON_OBJECT:
@@ -233,13 +225,13 @@ void on_print_(on *o, int tabs) {
         printf("Null\n");
         break;
     case ON_INTEGER:
-        printf("%d\n", *(int *)o->data);
+        printf("%d\n", (int)o->number);
         break;
     case ON_STRING:
         printf("%s\n", (char *)o->data);
         break;
     case ON_DOUBLE:
-        printf("%f\n", *(double *)o->data);
+        printf("%f\n", (double)o->number);
         break;
     case ON_TRUE:
         printf("True\n");

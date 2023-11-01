@@ -90,7 +90,6 @@ json_err *json_read_key(string *str, char **output) {
     if (err != NULL) return err;
 
     if (string_cmp(*output, "") == 0) {
-        // free(*output);
         return json_err_new(EMPTY_KEY, str->index, NULL);
     }
 
@@ -220,20 +219,18 @@ json_err *json_read_number(string *str, on *output) {
 
     if (fra == 0 && exp == 0) {
         on_set(output, ON_INTEGER);
-        int *number = xmalloc(sizeof(int));
-        *number = num;
-        output->data = number;
+        output->number = num;
     } else {
         on_set(output, ON_DOUBLE);
-        double *number = xmalloc(sizeof(double));
-        *number = num + fraction;
+
+        double number = num + fraction;
         int exp_abs = exp >= 0 ? exp : -exp;
         for (uint i = 0; i < exp_abs; i++) {
-            if (exp > 0) *number = *number * 10;
-            else *number = *number / 10;
+            if (exp > 0) number = number * 10;
+            else number = number / 10;
         }
 
-        output->data = number;
+        output->number = number;
     }
 
     return NULL;

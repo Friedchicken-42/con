@@ -16,7 +16,10 @@ enum on_type {
 typedef void (*on_func_free)(void *);
 
 typedef struct on_t {
-    void *data;
+    union {
+        void *data;
+        double number;
+    };
     enum on_type type;
     on_func_free func_free;
 } on;
