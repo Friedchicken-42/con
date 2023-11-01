@@ -5,8 +5,8 @@ C Object Notation. C support for JSON
 ## Run Locally
 
 ```bash
-  git clone https://github.com/Friedchicken-42/con con-master
-  cd con-master
+  git clone https://github.com/Friedchicken-42/con con-main
+  cd con-main
   make
 ```
 
@@ -15,7 +15,8 @@ C Object Notation. C support for JSON
 ### Read/Write JSON file
 
 ```c
-on *obj = json_load("file.json");
+on *o = NULL;
+json_err* err = json_load("file.json");
 json_dump(obj, "file.json");
 ```
 
